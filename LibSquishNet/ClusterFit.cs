@@ -39,11 +39,11 @@ namespace LibSquishNet
             _mBesterror = new Vector4(float.MaxValue);
 
             // cache some values
-            int count = MColours.Count;
-            Vector3[] values = MColours.Points;
+            var count = MColours.Count;
+            var values = MColours.Points;
 
             // get the covariance matrix
-            Sym3X3 covariance = Sym3X3.ComputeWeightedCovariance(count, values, MColours.Weights);
+            var covariance = Sym3X3.ComputeWeightedCovariance(count, values, MColours.Weights);
 
             // compute the principle component
             _mPrinciple = Sym3X3.ComputePrincipleComponent(covariance);
@@ -52,38 +52,38 @@ namespace LibSquishNet
         public bool ConstructOrdering(Vector3 axis, int iteration)
         {
             // cache some values
-            int count = MColours.Count;
-            Vector3[] values = MColours.Points;
+            var count = MColours.Count;
+            var values = MColours.Points;
 
             // build the list of dot products
-            float[] dps = new float[16];
+            var dps = new float[16];
 
-            for (int i = 0; i < count; ++i)
+            for (var i = 0; i < count; ++i)
             {
                 dps[i] = Vector3.Dot(values[i], axis);
                 _mOrder[(16 * iteration) + i] = (byte)i;
             }
 
             // stable sort using them
-            for (int i = 0; i < count; ++i)
+            for (var i = 0; i < count; ++i)
             {
-                for (int j = i; j > 0 && dps[j] < dps[j - 1]; --j)
+                for (var j = i; j > 0 && dps[j] < dps[j - 1]; --j)
                 {
-                    float tf = dps[j];
+                    var tf = dps[j];
                     dps[j] = dps[j - 1];
                     dps[j - 1] = tf;
 
-                    byte tb = _mOrder[(16 * iteration) + j];
+                    var tb = _mOrder[(16 * iteration) + j];
                     _mOrder[(16 * iteration) + j] = _mOrder[(16 * iteration) + j - 1];
                     _mOrder[(16 * iteration) + j - 1] = tb;
                 }
             }
 
             // check this ordering is unique
-            for (int it = 0; it < iteration; ++it)
+            for (var it = 0; it < iteration; ++it)
             {
-                bool same = true;
-                for (int i = 0; i < count; ++i)
+                var same = true;
+                for (var i = 0; i < count; ++i)
                 {
                     if (_mOrder[(16 * iteration) + i] != _mOrder[(16 * it) + i])
                     {
@@ -96,15 +96,15 @@ namespace LibSquishNet
             }
 
             // copy the ordering and weight all the points
-            Vector3[] unweighted = MColours.Points;
-            float[] weights = MColours.Weights;
+            var unweighted = MColours.Points;
+            var weights = MColours.Weights;
             _mXsumWsum = new Vector4(0.0f);
-            for (int i = 0; i < count; ++i)
+            for (var i = 0; i < count; ++i)
             {
                 int j = _mOrder[(16 * iteration) + i];
-                Vector4 p = new Vector4(unweighted[j].X, unweighted[j].Y, unweighted[j].Z, 1.0f);
-                Vector4 w = new Vector4(weights[j]);
-                Vector4 x = p * w;
+                var p = new Vector4(unweighted[j].X, unweighted[j].Y, unweighted[j].Z, 1.0f);
+                var w = new Vector4(weights[j]);
+                var x = p * w;
                 _mPointsWeights[i] = x;
                 _mXsumWsum += x;
             }
@@ -114,54 +114,54 @@ namespace LibSquishNet
         public override void Compress3(ref byte[] block, int offset)
         {
             // declare variables
-            int count = MColours.Count;
-            Vector4 two = new Vector4(2.0f);
-            Vector4 one = new Vector4(1.0f);
-            Vector4 halfHalf2 = new Vector4(0.5f, 0.5f, 0.5f, 0.25f);
-            Vector4 zero = new Vector4(0.0f);
-            Vector4 half = new Vector4(0.5f);
-            Vector4 grid = new Vector4(31.0f, 63.0f, 31.0f, 0.0f);
-            Vector4 gridrcp = new Vector4(1.0f / 31.0f, 1.0f / 63.0f, 1.0f / 31.0f, 0.0f);
+            var count = MColours.Count;
+            var two = new Vector4(2.0f);
+            var one = new Vector4(1.0f);
+            var halfHalf2 = new Vector4(0.5f, 0.5f, 0.5f, 0.25f);
+            var zero = new Vector4(0.0f);
+            var half = new Vector4(0.5f);
+            var grid = new Vector4(31.0f, 63.0f, 31.0f, 0.0f);
+            var gridrcp = new Vector4(1.0f / 31.0f, 1.0f / 63.0f, 1.0f / 31.0f, 0.0f);
 
             // prepare an ordering using the principle axis
             ConstructOrdering(_mPrinciple, 0);
 
             // check all possible clusters and iterate on the total order
-            Vector4 beststart = new Vector4(0.0f);
-            Vector4 bestend = new Vector4(0.0f);
-            Vector4 besterror = _mBesterror;
-            byte[] bestindices = new byte[16];
-            int bestiteration = 0;
+            var beststart = new Vector4(0.0f);
+            var bestend = new Vector4(0.0f);
+            var besterror = _mBesterror;
+            var bestindices = new byte[16];
+            var bestiteration = 0;
             int besti = 0, bestj = 0;
 
             // loop over iterations (we avoid the case that all points in first or last cluster)
-            for (int iterationIndex = 0; ; )
+            for (var iterationIndex = 0; ; )
             {
                 // first cluster [0,i) is at the start
-                Vector4 part0 = new Vector4(0.0f);
-                for (int i = 0; i < count; ++i)
+                var part0 = new Vector4(0.0f);
+                for (var i = 0; i < count; ++i)
                 {
                     // second cluster [i,j) is half along
-                    Vector4 part1 = (i == 0) ? _mPointsWeights[0] : new Vector4(0.0f);
-                    int jmin = (i == 0) ? 1 : i;
-                    for (int j = jmin; ; )
+                    var part1 = (i == 0) ? _mPointsWeights[0] : new Vector4(0.0f);
+                    var jmin = (i == 0) ? 1 : i;
+                    for (var j = jmin; ; )
                     {
                         // last cluster [j,count) is at the end
-                        Vector4 part2 = _mXsumWsum - part1 - part0;
+                        var part2 = _mXsumWsum - part1 - part0;
 
                         // compute least squares terms directly
-                        Vector4 alphaxSum = Helpers.MultiplyAdd(part1, halfHalf2, part0);
-                        Vector4 alpha2Sum = alphaxSum.SplatW();
+                        var alphaxSum = Helpers.MultiplyAdd(part1, halfHalf2, part0);
+                        var alpha2Sum = alphaxSum.SplatW();
 
-                        Vector4 betaxSum = Helpers.MultiplyAdd(part1, halfHalf2, part2);
-                        Vector4 beta2Sum = betaxSum.SplatW();
+                        var betaxSum = Helpers.MultiplyAdd(part1, halfHalf2, part2);
+                        var beta2Sum = betaxSum.SplatW();
 
-                        Vector4 alphabetaSum = (part1 * halfHalf2).SplatW();
+                        var alphabetaSum = (part1 * halfHalf2).SplatW();
 
                         // compute the least-squares optimal points
-                        Vector4 factor = Helpers.Reciprocal(Helpers.NegativeMultiplySubtract(alphabetaSum, alphabetaSum, alpha2Sum * beta2Sum));
-                        Vector4 a = Helpers.NegativeMultiplySubtract(betaxSum, alphabetaSum, alphaxSum * beta2Sum) * factor;
-                        Vector4 b = Helpers.NegativeMultiplySubtract(alphaxSum, alphabetaSum, betaxSum * alpha2Sum) * factor;
+                        var factor = Helpers.Reciprocal(Helpers.NegativeMultiplySubtract(alphabetaSum, alphabetaSum, alpha2Sum * beta2Sum));
+                        var a = Helpers.NegativeMultiplySubtract(betaxSum, alphabetaSum, alphaxSum * beta2Sum) * factor;
+                        var b = Helpers.NegativeMultiplySubtract(alphaxSum, alphabetaSum, betaxSum * alpha2Sum) * factor;
 
                         // clamp to the grid
                         a = Vector4.Min(one, Vector4.Max(zero, a));
@@ -170,14 +170,14 @@ namespace LibSquishNet
                         b = Helpers.Truncate(Helpers.MultiplyAdd(grid, b, half)) * gridrcp;
 
                         // compute the error (we skip the constant xxsum)
-                        Vector4 e1 = Helpers.MultiplyAdd(a * a, alpha2Sum, b * b * beta2Sum);
-                        Vector4 e2 = Helpers.NegativeMultiplySubtract(a, alphaxSum, a * b * alphabetaSum);
-                        Vector4 e3 = Helpers.NegativeMultiplySubtract(b, betaxSum, e2);
-                        Vector4 e4 = Helpers.MultiplyAdd( two, e3, e1);
+                        var e1 = Helpers.MultiplyAdd(a * a, alpha2Sum, b * b * beta2Sum);
+                        var e2 = Helpers.NegativeMultiplySubtract(a, alphaxSum, a * b * alphabetaSum);
+                        var e3 = Helpers.NegativeMultiplySubtract(b, betaxSum, e2);
+                        var e4 = Helpers.MultiplyAdd( two, e3, e1);
 
                         // apply the metric to the error term
-                        Vector4 e5 = e4 * _mMetric;
-                        Vector4 error = e5.SplatX() + e5.SplatY() + e5.SplatZ();
+                        var e5 = e4 * _mMetric;
+                        var error = e5.SplatX() + e5.SplatY() + e5.SplatZ();
 
                         // keep the solution if it wins
                         if (Helpers.CompareAnyLessThan(error, besterror))
@@ -211,7 +211,7 @@ namespace LibSquishNet
                     break;
 
                 // stop if a new iteration is an ordering that has already been tried
-                Vector3 axis = (bestend - beststart).ToVector3();
+                var axis = (bestend - beststart).ToVector3();
                 if (!ConstructOrdering(axis, iterationIndex))
                     break;
             }
@@ -219,12 +219,12 @@ namespace LibSquishNet
             // save the block if necessary
             if (Helpers.CompareAnyLessThan(besterror, _mBesterror))
             {
-                byte[] unordered = new byte[16];
-                for (int m = 0; m < besti; ++m)
+                var unordered = new byte[16];
+                for (var m = 0; m < besti; ++m)
                     unordered[_mOrder[(16 * bestiteration) + m]] = 0;
-                for (int m = besti; m < bestj; ++m)
+                for (var m = besti; m < bestj; ++m)
                     unordered[_mOrder[(16 * bestiteration) + m]] = 2;
-                for (int m = bestj; m < count; ++m)
+                for (var m = bestj; m < count; ++m)
                     unordered[_mOrder[(16 * bestiteration) + m]] = 1;
 
                 MColours.RemapIndices(unordered, bestindices);
@@ -240,60 +240,60 @@ namespace LibSquishNet
         public override void Compress4(ref byte[] block, int offset)
         {
             // declare variables
-            int count = MColours.Count;
-            Vector4 two = new Vector4(2.0f);
-            Vector4 one = new Vector4(1.0f);
-            Vector4 onethirdOnethird2 = new Vector4(1.0f / 3.0f, 1.0f / 3.0f, 1.0f / 3.0f, 1.0f / 9.0f);
-            Vector4 twothirdsTwothirds2 = new Vector4(2.0f / 3.0f, 2.0f / 3.0f, 2.0f / 3.0f, 4.0f / 9.0f);
-            Vector4 twonineths = new Vector4(2.0f / 9.0f);
-            Vector4 zero = new Vector4(0.0f);
-            Vector4 half = new Vector4(0.5f);
-            Vector4 grid = new Vector4(31.0f, 63.0f, 31.0f, 0.0f);
-            Vector4 gridrcp = new Vector4(1.0f / 31.0f, 1.0f / 63.0f, 1.0f / 31.0f, 0.0f);
+            var count = MColours.Count;
+            var two = new Vector4(2.0f);
+            var one = new Vector4(1.0f);
+            var onethirdOnethird2 = new Vector4(1.0f / 3.0f, 1.0f / 3.0f, 1.0f / 3.0f, 1.0f / 9.0f);
+            var twothirdsTwothirds2 = new Vector4(2.0f / 3.0f, 2.0f / 3.0f, 2.0f / 3.0f, 4.0f / 9.0f);
+            var twonineths = new Vector4(2.0f / 9.0f);
+            var zero = new Vector4(0.0f);
+            var half = new Vector4(0.5f);
+            var grid = new Vector4(31.0f, 63.0f, 31.0f, 0.0f);
+            var gridrcp = new Vector4(1.0f / 31.0f, 1.0f / 63.0f, 1.0f / 31.0f, 0.0f);
 
             // prepare an ordering using the principle axis
             ConstructOrdering(_mPrinciple, 0);
 
             // check all possible clusters and iterate on the total order
-            Vector4 beststart = new Vector4(0.0f);
-            Vector4 bestend = new Vector4(0.0f);
-            Vector4 besterror = _mBesterror;
-            byte[] bestindices = new byte[16];
-            int bestiteration = 0;
+            var beststart = new Vector4(0.0f);
+            var bestend = new Vector4(0.0f);
+            var besterror = _mBesterror;
+            var bestindices = new byte[16];
+            var bestiteration = 0;
             int besti = 0, bestj = 0, bestk = 0;
 
             // loop over iterations (we avoid the case that all points in first or last cluster)
-            for (int iterationIndex = 0; ; )
+            for (var iterationIndex = 0; ; )
             {
                 // first cluster [0,i) is at the start
-                Vector4 part0 = new Vector4(0.0f);
-                for (int i = 0; i < count; ++i)
+                var part0 = new Vector4(0.0f);
+                for (var i = 0; i < count; ++i)
                 {
                     // second cluster [i,j) is one third along
-                    Vector4 part1 = new Vector4(0.0f);
-                    for (int j = i; ; )
+                    var part1 = new Vector4(0.0f);
+                    for (var j = i; ; )
                     {
                         // third cluster [j,k) is two thirds along
-                        Vector4 part2 = (j == 0) ? _mPointsWeights[0] : new Vector4(0.0f);
-                        int kmin = (j == 0) ? 1 : j;
-                        for (int k = kmin; ; )
+                        var part2 = (j == 0) ? _mPointsWeights[0] : new Vector4(0.0f);
+                        var kmin = (j == 0) ? 1 : j;
+                        for (var k = kmin; ; )
                         {
                             // last cluster [k,count) is at the end
-                            Vector4 part3 = _mXsumWsum - part2 - part1 - part0;
+                            var part3 = _mXsumWsum - part2 - part1 - part0;
 
                             // compute least squares terms directly
-                            Vector4 alphaxSum = Helpers.MultiplyAdd(part2, onethirdOnethird2, Helpers.MultiplyAdd(part1, twothirdsTwothirds2, part0));
-                            Vector4 alpha2Sum = alphaxSum.SplatW();
+                            var alphaxSum = Helpers.MultiplyAdd(part2, onethirdOnethird2, Helpers.MultiplyAdd(part1, twothirdsTwothirds2, part0));
+                            var alpha2Sum = alphaxSum.SplatW();
 
-                            Vector4 betaxSum = Helpers.MultiplyAdd(part1, onethirdOnethird2, Helpers.MultiplyAdd(part2, twothirdsTwothirds2, part3));
-                            Vector4 beta2Sum = betaxSum.SplatW();
+                            var betaxSum = Helpers.MultiplyAdd(part1, onethirdOnethird2, Helpers.MultiplyAdd(part2, twothirdsTwothirds2, part3));
+                            var beta2Sum = betaxSum.SplatW();
 
-                            Vector4 alphabetaSum = twonineths * (part1 + part2).SplatW();
+                            var alphabetaSum = twonineths * (part1 + part2).SplatW();
 
                             // compute the least-squares optimal points
-                            Vector4 factor = Helpers.Reciprocal(Helpers.NegativeMultiplySubtract(alphabetaSum, alphabetaSum, alpha2Sum * beta2Sum));
-                            Vector4 a = Helpers.NegativeMultiplySubtract(betaxSum, alphabetaSum, alphaxSum * beta2Sum) * factor;
-                            Vector4 b = Helpers.NegativeMultiplySubtract(alphaxSum, alphabetaSum, betaxSum * alpha2Sum) * factor;
+                            var factor = Helpers.Reciprocal(Helpers.NegativeMultiplySubtract(alphabetaSum, alphabetaSum, alpha2Sum * beta2Sum));
+                            var a = Helpers.NegativeMultiplySubtract(betaxSum, alphabetaSum, alphaxSum * beta2Sum) * factor;
+                            var b = Helpers.NegativeMultiplySubtract(alphaxSum, alphabetaSum, betaxSum * alpha2Sum) * factor;
 
                             // clamp to the grid
                             a = Vector4.Min(one, Vector4.Max(zero, a));
@@ -302,14 +302,14 @@ namespace LibSquishNet
                             b = Helpers.Truncate(Helpers.MultiplyAdd(grid, b, half)) * gridrcp;
 
                             // compute the error (we skip the constant xxsum)
-                            Vector4 e1 = Helpers.MultiplyAdd(a * a, alpha2Sum, b * b * beta2Sum);
-                            Vector4 e2 = Helpers.NegativeMultiplySubtract(a, alphaxSum, a * b * alphabetaSum);
-                            Vector4 e3 = Helpers.NegativeMultiplySubtract(b, betaxSum, e2);
-                            Vector4 e4 = Helpers.MultiplyAdd(two, e3, e1);
+                            var e1 = Helpers.MultiplyAdd(a * a, alpha2Sum, b * b * beta2Sum);
+                            var e2 = Helpers.NegativeMultiplySubtract(a, alphaxSum, a * b * alphabetaSum);
+                            var e3 = Helpers.NegativeMultiplySubtract(b, betaxSum, e2);
+                            var e4 = Helpers.MultiplyAdd(two, e3, e1);
 
                             // apply the metric to the error term
-                            Vector4 e5 = e4 * _mMetric;
-                            Vector4 error = e5.SplatX() + e5.SplatY() + e5.SplatZ();
+                            var e5 = e4 * _mMetric;
+                            var error = e5.SplatX() + e5.SplatY() + e5.SplatZ();
 
                             // keep the solution if it wins
                             if (Helpers.CompareAnyLessThan(error, besterror))
@@ -351,7 +351,7 @@ namespace LibSquishNet
                     break;
 
                 // stop if a new iteration is an ordering that has already been tried
-                Vector3 axis = (bestend - beststart).ToVector3();
+                var axis = (bestend - beststart).ToVector3();
                 if (!ConstructOrdering(axis, iterationIndex))
                     break;
             }
@@ -360,14 +360,14 @@ namespace LibSquishNet
             if (Helpers.CompareAnyLessThan(besterror, _mBesterror))
             {
                 // remap the indices
-                byte[] unordered = new byte[16];
-                for (int m = 0; m < besti; ++m)
+                var unordered = new byte[16];
+                for (var m = 0; m < besti; ++m)
                     unordered[_mOrder[(16 * bestiteration) + m]] = 0;
-                for (int m = besti; m < bestj; ++m)
+                for (var m = besti; m < bestj; ++m)
                     unordered[_mOrder[(16 * bestiteration) + m]] = 2;
-                for (int m = bestj; m < bestk; ++m)
+                for (var m = bestj; m < bestk; ++m)
                     unordered[_mOrder[(16 * bestiteration) + m]] = 3;
-                for (int m = bestk; m < count; ++m)
+                for (var m = bestk; m < count; ++m)
                     unordered[_mOrder[(16 * bestiteration) + m]] = 1;
 
                 MColours.RemapIndices(unordered, bestindices);

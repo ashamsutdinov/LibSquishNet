@@ -14,15 +14,15 @@ namespace LibSquishNet
 
         public Sym3X3(float s)
         {
-            for (int i = 0; i < 6; i++) { _mX[i] = s; }
+            for (var i = 0; i < 6; i++) { _mX[i] = s; }
         }
 
         public static Sym3X3 ComputeWeightedCovariance(int n, Vector3[] points, float[] weights)
         {
             // compute the centroid
-            float total = 0.0f;
-            Vector3 centroid = new Vector3(0.0f);
-            for (int i = 0; i < n; ++i)
+            var total = 0.0f;
+            var centroid = new Vector3(0.0f);
+            for (var i = 0; i < n; ++i)
             {
                 total += weights[i];
                 centroid += weights[i] * points[i];
@@ -30,11 +30,11 @@ namespace LibSquishNet
             if (total > float.Epsilon) { centroid /= total; }
 
             // accumulate the covariance matrix
-            Sym3X3 covariance = new Sym3X3(0.0f);
-            for (int i = 0; i < n; ++i)
+            var covariance = new Sym3X3(0.0f);
+            for (var i = 0; i < n; ++i)
             {
-                Vector3 a = points[i] - centroid;
-                Vector3 b = weights[i] * a;
+                var a = points[i] - centroid;
+                var b = weights[i] * a;
 
                 covariance[0] += a.X * b.X;
                 covariance[1] += a.X * b.Y;
@@ -50,19 +50,19 @@ namespace LibSquishNet
 
         public static Vector3 ComputePrincipleComponent(Sym3X3 matrix)
         {
-            Vector4 row0 = new Vector4(matrix[0], matrix[1], matrix[2], 0.0f);
-            Vector4 row1 = new Vector4(matrix[1], matrix[3], matrix[4], 0.0f);
-            Vector4 row2 = new Vector4(matrix[2], matrix[4], matrix[5], 0.0f);
-            Vector4 v = new Vector4(1.0f);
-            for (int i = 0; i < 8; ++i)
+            var row0 = new Vector4(matrix[0], matrix[1], matrix[2], 0.0f);
+            var row1 = new Vector4(matrix[1], matrix[3], matrix[4], 0.0f);
+            var row2 = new Vector4(matrix[2], matrix[4], matrix[5], 0.0f);
+            var v = new Vector4(1.0f);
+            for (var i = 0; i < 8; ++i)
             {
                 // matrix multiply
-                Vector4 w = row0 * v.SplatX();
+                var w = row0 * v.SplatX();
                 w = Helpers.MultiplyAdd(row1, v.SplatY(), w);
                 w = Helpers.MultiplyAdd(row2, v.SplatZ(), w);
 
                 // get max component from xyz in all channels
-                Vector4 a = Vector4.Max(w.SplatX(), Vector4.Max(w.SplatY(), w.SplatZ()));
+                var a = Vector4.Max(w.SplatX(), Vector4.Max(w.SplatY(), w.SplatZ()));
 
                 // divide through and advance
                 v = w * Helpers.Reciprocal(a);

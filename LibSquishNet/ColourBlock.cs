@@ -7,7 +7,7 @@ namespace LibSquishNet
         public static int FloatToInt(float a, int limit)
         {
             // use ANSI round-to-zero behaviour to get round-to-nearest
-            int i = (int)(a + 0.5f);
+            var i = (int)(a + 0.5f);
 
             // clamp to the limit
             if (i < 0)
@@ -22,9 +22,9 @@ namespace LibSquishNet
         private static int FloatTo565(Vector3 colour)
         {
             // get the components in the correct range
-            int r = FloatToInt(31.0f * colour.X, 31);
-            int g = FloatToInt(63.0f * colour.Y, 63);
-            int b = FloatToInt(31.0f * colour.Z, 31);
+            var r = FloatToInt(31.0f * colour.X, 31);
+            var g = FloatToInt(63.0f * colour.Y, 63);
+            var b = FloatToInt(31.0f * colour.Z, 31);
 
             // pack into a single value
             return (r << 11) | (g << 5) | b;
@@ -39,7 +39,7 @@ namespace LibSquishNet
             block[offset + 3] = (byte)(b >> 8);
 
             // write the indices
-            for (int i = 0; i < 4; ++i)
+            for (var i = 0; i < 4; ++i)
             {
                 block[offset + 4 + i] = (byte)(indices[(4 * i) + 0] | (indices[(4 * i) + 1] << 2) | (indices[(4 * i) + 2] << 4) | (indices[(4 * i) + 3] << 6));
             }
@@ -48,24 +48,24 @@ namespace LibSquishNet
         public static void WriteColourBlock3(Vector3 start, Vector3 end, byte[] indices, ref byte[] block, int offset)
         {
             // get the packed values
-            int a = FloatTo565(start);
-            int b = FloatTo565(end);
+            var a = FloatTo565(start);
+            var b = FloatTo565(end);
 
             // remap the indices
-            byte[] remapped = new byte[16];
+            var remapped = new byte[16];
             if (a <= b)
             {
                 // use the indices directly
-                for (int i = 0; i < 16; ++i)
+                for (var i = 0; i < 16; ++i)
                     remapped[i] = indices[i];
             }
             else
             {
                 // swap a and b
-                int t = a;
+                var t = a;
                 a = b;
                 b = t;
-                for (int i = 0; i < 16; ++i)
+                for (var i = 0; i < 16; ++i)
                 {
                     if (indices[i] == 0)
                         remapped[i] = 1;
@@ -83,30 +83,30 @@ namespace LibSquishNet
         public static void WriteColourBlock4(Vector3 start, Vector3 end, byte[] indices, ref byte[] block, int offset)
         {
             // get the packed values
-            int a = FloatTo565(start);
-            int b = FloatTo565(end);
+            var a = FloatTo565(start);
+            var b = FloatTo565(end);
 
             // remap the indices
-            byte[] remapped = new byte[16];
+            var remapped = new byte[16];
             if (a < b)
             {
                 // swap a and b
-                int t = a;
+                var t = a;
                 a = b;
                 b = t;
-                for (int i = 0; i < 16; ++i)
+                for (var i = 0; i < 16; ++i)
                     remapped[i] = (byte)((indices[i] ^ 0x1) & 0x3);
             }
             else if (a == b)
             {
                 // use index 0
-                for (int i = 0; i < 16; ++i)
+                for (var i = 0; i < 16; ++i)
                     remapped[i] = 0;
             }
             else
             {
                 // use the indices directly
-                for (int i = 0; i < 16; ++i)
+                for (var i = 0; i < 16; ++i)
                     remapped[i] = indices[i];
             }
 
@@ -117,12 +117,12 @@ namespace LibSquishNet
         private static int Unpack565(byte[] packed, int offset, byte[] colour, int colouroffset)
         {
             // build the packed value
-            int value = (int)packed[offset + 0] | ((int)packed[offset + 1] << 8);
+            var value = (int)packed[offset + 0] | ((int)packed[offset + 1] << 8);
 
             // get the components in the stored range
-            byte red = (byte)((value >> 11) & 0x1f);
-            byte green = (byte)((value >> 5) & 0x3f);
-            byte blue = (byte)(value & 0x1f);
+            var red = (byte)((value >> 11) & 0x1f);
+            var green = (byte)((value >> 5) & 0x3f);
+            var blue = (byte)(value & 0x1f);
 
             // scale up to 8 bits
             colour[colouroffset + 0] = (byte)((red << 3) | (red >> 2));
@@ -137,12 +137,12 @@ namespace LibSquishNet
         public static void DecompressColour(byte[] rgba, ref byte[] block, int offset, bool isDxt1)
         {
             // unpack the endpoints
-            byte[] codes = new byte[16];
-            int a = Unpack565(block, offset, codes, 0);
-            int b = Unpack565(block, offset + 2, codes, 4);
+            var codes = new byte[16];
+            var a = Unpack565(block, offset, codes, 0);
+            var b = Unpack565(block, offset + 2, codes, 4);
 
             // generate the midpoints
-            for (int i = 0; i < 3; ++i)
+            for (var i = 0; i < 3; ++i)
             {
                 int c = codes[i];
                 int d = codes[4 + i];
@@ -164,11 +164,11 @@ namespace LibSquishNet
             codes[12 + 3] = (byte)(isDxt1 && a <= b ? 0 : 255);
 
             // unpack the indices
-            byte[] indices = new byte[16];
-            for (int i = 0; i < 4; ++i)
+            var indices = new byte[16];
+            for (var i = 0; i < 4; ++i)
             {
-                int ind = 4 * i;
-                byte packed = block[offset + 4 + i];
+                var ind = 4 * i;
+                var packed = block[offset + 4 + i];
 
                 indices[ind + 0] = (byte)(packed & 0x3);
                 indices[ind + 1] = (byte)((packed >> 2) & 0x3);
@@ -177,10 +177,10 @@ namespace LibSquishNet
             }
 
             // store out the colours
-            for (int i = 0; i < 16; ++i)
+            for (var i = 0; i < 16; ++i)
             {
-                byte coffset = (byte)(4 * indices[i]);
-                for (int j = 0; j < 4; ++j)
+                var coffset = (byte)(4 * indices[i]);
+                for (var j = 0; j < 4; ++j)
                 {
                     rgba[4 * i + j] = codes[coffset + j];
                 }

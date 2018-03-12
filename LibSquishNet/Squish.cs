@@ -50,8 +50,8 @@ namespace LibSquishNet
             flags = FixFlags(flags);
 
             // compute the storage requirements
-            int blockcount = ((width + 3) / 4) * ((height + 3) / 4);
-            int blocksize = ((flags & SquishFlags.KDxt1) != 0) ? 8 : 16;
+            var blockcount = ((width + 3) / 4) * ((height + 3) / 4);
+            var blocksize = ((flags & SquishFlags.KDxt1) != 0) ? 8 : 16;
             return blockcount * blocksize;
         }
 
@@ -61,33 +61,33 @@ namespace LibSquishNet
             flags = FixFlags(flags);
 
             // initialise the block input
-            int sourceBlock = 0;
-            int bytesPerBlock = ((flags & SquishFlags.KDxt1) != 0) ? 8 : 16;
+            var sourceBlock = 0;
+            var bytesPerBlock = ((flags & SquishFlags.KDxt1) != 0) ? 8 : 16;
 
             // loop over blocks
-            for (int y = 0; y < height; y += 4)
+            for (var y = 0; y < height; y += 4)
             {
-                for (int x = 0; x < width; x += 4)
+                for (var x = 0; x < width; x += 4)
                 {
                     // decompress the block
-                    byte[] targetRgba = new byte[4 * 16];
+                    var targetRgba = new byte[4 * 16];
                     Decompress(targetRgba, ref blocks, sourceBlock, flags);
 
                     // write the decompressed pixels to the correct image locations
-                    int sourcePixel = 0;
-                    for (int py = 0; py < 4; ++py)
+                    var sourcePixel = 0;
+                    for (var py = 0; py < 4; ++py)
                     {
-                        for (int px = 0; px < 4; ++px)
+                        for (var px = 0; px < 4; ++px)
                         {
                             // get the target location
-                            int sx = x + px;
-                            int sy = y + py;
+                            var sx = x + px;
+                            var sy = y + py;
                             if (sx < width && sy < height)
                             {
-                                int targetPixel = 4 * (width * sy + sx);
+                                var targetPixel = 4 * (width * sy + sx);
 
                                 // copy the rgba value
-                                for (int i = 0; i < 4; ++i)
+                                for (var i = 0; i < 4; ++i)
                                 {
                                     rgba[targetPixel] = targetRgba[sourcePixel];
 
@@ -115,8 +115,8 @@ namespace LibSquishNet
             flags = FixFlags(flags);
 
             // get the block locations
-            int colourBlock = offset;
-            int alphaBlock = offset;
+            var colourBlock = offset;
+            var alphaBlock = offset;
             if ((flags & (SquishFlags.KDxt3 | SquishFlags.KDxt5)) != 0) { colourBlock += 8; }
 
             // decompress colour
@@ -140,32 +140,32 @@ namespace LibSquishNet
             flags = FixFlags(flags);
 
             // initialise the block output
-            int targetBlock = 0;
-            int bytesPerBlock = (flags.HasFlag(SquishFlags.KDxt1) ? 8 : 16);
+            var targetBlock = 0;
+            var bytesPerBlock = (flags.HasFlag(SquishFlags.KDxt1) ? 8 : 16);
 
             // loop over blocks
-            for (int y = 0; y < height; y += 4)
+            for (var y = 0; y < height; y += 4)
             {
-                for (int x = 0; x < width; x += 4)
+                for (var x = 0; x < width; x += 4)
                 {
                     // build the 4x4 block of pixels
-                    byte[] sourceRgba = new byte[16 * 4];
+                    var sourceRgba = new byte[16 * 4];
                     byte targetPixel = 0;
-                    int mask = 0;
+                    var mask = 0;
 
-                    for (int py = 0; py < 4; ++py)
+                    for (var py = 0; py < 4; ++py)
                     {
-                        for (int px = 0; px < 4; ++px)
+                        for (var px = 0; px < 4; ++px)
                         {
                             // get the source pixel in the image
-                            int sx = x + px;
-                            int sy = y + py;
+                            var sx = x + px;
+                            var sy = y + py;
 
                             // enable if we're in the image
                             if (sx < width && sy < height)
                             {
                                 // copy the rgba value
-                                for (int i = 0; i < 4; ++i)
+                                for (var i = 0; i < 4; ++i)
                                 {
                                     sourceRgba[targetPixel] = rgba[i + 4 * (width * sy + sx)];
                                     targetPixel++;
@@ -197,30 +197,30 @@ namespace LibSquishNet
             flags = FixFlags(flags);
 
             // get the block locations
-            int colourBlock = offset;
-            int alphaBlock = offset;
+            var colourBlock = offset;
+            var alphaBlock = offset;
             if ((flags & (SquishFlags.KDxt3 | SquishFlags.KDxt5)) != 0) { colourBlock += 8; }
 
             // create the minimal point set
-            ColourSet colours = new ColourSet(rgba, mask, flags);
+            var colours = new ColourSet(rgba, mask, flags);
 
             // check the compression type and compress colour
             if (colours.Count == 1)
             {
                 // always do a single colour fit
-                SingleColourFit fit = new SingleColourFit(colours, flags);
+                var fit = new SingleColourFit(colours, flags);
                 fit.Compress(ref block, colourBlock);
             }
             else if ((flags & SquishFlags.KColourRangeFit) != 0 || colours.Count == 0)
             {
                 // do a range fit
-                RangeFit fit = new RangeFit(colours, flags, metric);
+                var fit = new RangeFit(colours, flags, metric);
                 fit.Compress(ref block, colourBlock);
             }
             else
             {
                 // default to a cluster fit (could be iterative or not)
-                ClusterFit fit = new ClusterFit(colours, flags, metric);
+                var fit = new ClusterFit(colours, flags, metric);
                 fit.Compress(ref block, colourBlock);
             }
 
@@ -238,17 +238,17 @@ namespace LibSquishNet
         private static void CompressAlphaDxt3(byte[] rgba, int mask, ref byte[] block, int offset)
         {
             // quantise and pack the alpha values pairwise
-            for (int i = 0; i < 8; ++i)
+            for (var i = 0; i < 8; ++i)
             {
                 // quantise down to 4 bits
-                float alpha1 = (float)rgba[8 * i + 3] * (15.0f / 255.0f);
-                float alpha2 = (float)rgba[8 * i + 7] * (15.0f / 255.0f);
-                int quant1 = ColourBlock.FloatToInt(alpha1, 15);
-                int quant2 = ColourBlock.FloatToInt(alpha2, 15);
+                var alpha1 = (float)rgba[8 * i + 3] * (15.0f / 255.0f);
+                var alpha2 = (float)rgba[8 * i + 7] * (15.0f / 255.0f);
+                var quant1 = ColourBlock.FloatToInt(alpha1, 15);
+                var quant2 = ColourBlock.FloatToInt(alpha2, 15);
 
                 // set alpha to zero where masked
-                int bit1 = 1 << (2 * i);
-                int bit2 = 1 << (2 * i + 1);
+                var bit1 = 1 << (2 * i);
+                var bit2 = 1 << (2 * i + 1);
                 if ((mask & bit1) == 0)
                     quant1 = 0;
                 if ((mask & bit2) == 0)
@@ -270,11 +270,11 @@ namespace LibSquishNet
         private static int FitCodes(byte[] rgba, int mask, byte[] codes, byte[] indices)
         {
             // fit each alpha value to the codebook
-            int err = 0;
-            for (int i = 0; i < 16; ++i)
+            var err = 0;
+            for (var i = 0; i < 16; ++i)
             {
                 // check this pixel is valid
-                int bit = 1 << i;
+                var bit = 1 << i;
                 if ((mask & bit) == 0)
                 {
                     // use the first code
@@ -284,12 +284,12 @@ namespace LibSquishNet
 
                 // find the least error and corresponding index
                 int value = rgba[4 * i + 3];
-                int least = int.MaxValue;
-                int index = 0;
-                for (int j = 0; j < 8; ++j)
+                var least = int.MaxValue;
+                var index = 0;
+                for (var j = 0; j < 8; ++j)
                 {
                     // get the squared error from this code
-                    int dist = (int)value - (int)codes[j];
+                    var dist = (int)value - (int)codes[j];
                     dist *= dist;
 
                     // compare with the best so far
@@ -316,13 +316,13 @@ namespace LibSquishNet
             block[offset + 1] = (byte)alpha1;
 
             // pack the indices with 3 bits each
-            int dest = offset + 2;
-            int src = 0;
-            for (int i = 0; i < 2; ++i)
+            var dest = offset + 2;
+            var src = 0;
+            for (var i = 0; i < 2; ++i)
             {
                 // pack 8 3-bit values
-                int value = 0;
-                for (int j = 0; j < 8; ++j)
+                var value = 0;
+                for (var j = 0; j < 8; ++j)
                 {
                     int index = indices[src];
                     value |= (index << 3 * j);
@@ -330,9 +330,9 @@ namespace LibSquishNet
                 }
 
                 // store in 3 bytes
-                for (int j = 0; j < 3; ++j)
+                for (var j = 0; j < 3; ++j)
                 {
-                    int b = (value >> 8 * j) & 0xff;
+                    var b = (value >> 8 * j) & 0xff;
                     block[dest] = (byte)b;
                     dest++;
                 }
@@ -345,10 +345,10 @@ namespace LibSquishNet
             if (alpha0 > alpha1)
             {
                 // swap the indices
-                byte[] swapped = new byte[16];
-                for (int i = 0; i < 16; ++i)
+                var swapped = new byte[16];
+                for (var i = 0; i < 16; ++i)
                 {
-                    byte index = indices[i];
+                    var index = indices[i];
                     if (index == 0)
                         swapped[i] = 1;
                     else if (index == 1)
@@ -375,10 +375,10 @@ namespace LibSquishNet
             if (alpha0 < alpha1)
             {
                 // swap the indices
-                byte[] swapped = new byte[16];
-                for (int i = 0; i < 16; ++i)
+                var swapped = new byte[16];
+                for (var i = 0; i < 16; ++i)
                 {
-                    byte index = indices[i];
+                    var index = indices[i];
                     if (index == 0)
                         swapped[i] = 1;
                     else if (index == 1)
@@ -400,14 +400,14 @@ namespace LibSquishNet
         private static void CompressAlphaDxt5( byte[] rgba, int mask, ref byte[] block, int offset )
         {
             // get the range for 5-alpha and 7-alpha interpolation
-            int min5 = 255;
-            int max5 = 0;
-            int min7 = 255;
-            int max7 = 0;
-            for( int i = 0; i < 16; ++i )
+            var min5 = 255;
+            var max5 = 0;
+            var min7 = 255;
+            var max7 = 0;
+            for( var i = 0; i < 16; ++i )
             {
                     // check this pixel is valid
-                    int bit = 1 << i;
+                    var bit = 1 << i;
                     if( ( mask & bit ) == 0 )
                             continue;
 
@@ -434,26 +434,26 @@ namespace LibSquishNet
             FixRange( min7, max7, 7 );
         
             // set up the 5-alpha code book
-            byte[] codes5 = new byte[8];
+            var codes5 = new byte[8];
             codes5[0] = ( byte )min5;
             codes5[1] = ( byte )max5;
-            for( int i = 1; i < 5; ++i )
+            for( var i = 1; i < 5; ++i )
                     codes5[1 + i] = ( byte )( ( ( 5 - i )*min5 + i*max5 )/5 );
             codes5[6] = 0;
             codes5[7] = 255;
         
             // set up the 7-alpha code book
-            byte[] codes7 = new byte[8];
+            var codes7 = new byte[8];
             codes7[0] = ( byte )min7;
             codes7[1] = ( byte )max7;
-            for( int i = 1; i < 7; ++i )
+            for( var i = 1; i < 7; ++i )
                     codes7[1 + i] = ( byte )( ( ( 7 - i )*min7 + i*max7 )/7 );
                 
             // fit the data to both code books
-            byte[] indices5 = new byte[16];
-            byte[] indices7 = new byte[16];
-            int err5 = FitCodes( rgba, mask, codes5, indices5 );
-            int err7 = FitCodes( rgba, mask, codes7, indices7 );
+            var indices5 = new byte[16];
+            var indices7 = new byte[16];
+            var err5 = FitCodes( rgba, mask, codes5, indices5 );
+            var err7 = FitCodes( rgba, mask, codes7, indices7 );
         
             // save the block with least error
             if( err5 <= err7 )
@@ -469,13 +469,13 @@ namespace LibSquishNet
             int alpha1 = block[offset + 1];
 
             // compare the values to build the codebook
-            byte[] codes = new byte[8];
+            var codes = new byte[8];
             codes[0] = (byte)alpha0;
             codes[1] = (byte)alpha1;
             if (alpha0 <= alpha1)
             {
                 // use 5-alpha codebook
-                for (int i = 1; i < 5; ++i)
+                for (var i = 1; i < 5; ++i)
                 {
                     codes[1 + i] = (byte)(((5 - i) * alpha0 + i * alpha1) / 5);
                 }
@@ -485,36 +485,36 @@ namespace LibSquishNet
             else
             {
                 // use 7-alpha codebook
-                for (int i = 1; i < 7; ++i)
+                for (var i = 1; i < 7; ++i)
                 {
                     codes[1 + i] = (byte)(((7 - i) * alpha0 + i * alpha1) / 7);
                 }
             }
 
             // decode the indices
-            byte[] indices = new byte[16];
-            int src = offset + 2;
-            int dest = 0;
-            for (int i = 0; i < 2; ++i)
+            var indices = new byte[16];
+            var src = offset + 2;
+            var dest = 0;
+            for (var i = 0; i < 2; ++i)
             {
                 // grab 3 bytes
-                int value = 0;
-                for (int j = 0; j < 3; ++j)
+                var value = 0;
+                for (var j = 0; j < 3; ++j)
                 {
                     int b = block[src++];
                     value |= (b << 8 * j);
                 }
 
                 // unpack 8 3-bit values from it
-                for (int j = 0; j < 8; ++j)
+                for (var j = 0; j < 8; ++j)
                 {
-                    int index = (value >> 3 * j) & 0x7;
+                    var index = (value >> 3 * j) & 0x7;
                     indices[dest++] = (byte)index;
                 }
             }
 
             // write out the indexed codebook values
-            for (int i = 0; i < 16; ++i)
+            for (var i = 0; i < 16; ++i)
             {
                 rgba[4 * i + 3] = codes[indices[i]];
             }

@@ -15,7 +15,7 @@ namespace LibSquishNet
             : base(colours, flags)
         {
             // grab the single colour
-            Vector3[] values = MColours.Points;
+            var values = MColours.Points;
             _mColour[0] = (byte)ColourBlock.FloatToInt(255.0f * values[0].X, 255);
             _mColour[1] = (byte)ColourBlock.FloatToInt(255.0f * values[0].Y, 255);
             _mColour[2] = (byte)ColourBlock.FloatToInt(255.0f * values[0].Z, 255);
@@ -28,15 +28,15 @@ namespace LibSquishNet
         {
             // check each index combination (endpoint or intermediate)
             _mError = int.MaxValue;
-            for (int index = 0; index < 2; ++index)
+            for (var index = 0; index < 2; ++index)
             {
                 // check the error for this codebook index
-                SourceBlock[] sources = new SourceBlock[3];
-                int error = 0;
-                for (int channel = 0; channel < 3; ++channel)
+                var sources = new SourceBlock[3];
+                var error = 0;
+                for (var channel = 0; channel < 3; ++channel)
                 {
                     // grab the lookup table and index for this channel
-                    SingleColourLookup[] lookup = lookups[channel];
+                    var lookup = lookups[channel];
                     int target = _mColour[channel];
 
                     // store a pointer to the source for this channel
@@ -69,7 +69,7 @@ namespace LibSquishNet
         public override void Compress3(ref byte[] block, int offset)
         {
             // build the table of lookups
-            SingleColourLookup[][] lookups = new SingleColourLookup[][]
+            var lookups = new SingleColourLookup[][]
             {
                 SingleColourLookupIns.Lookup53, 
                 SingleColourLookupIns.Lookup63, 
@@ -83,7 +83,7 @@ namespace LibSquishNet
             if (_mError < _mBesterror)
             {
                 // remap the indices
-                byte[] indices = new byte[16];
+                var indices = new byte[16];
                 MColours.RemapIndices(new byte[] { _mIndex }, indices);
 
                 // save the block
@@ -97,7 +97,7 @@ namespace LibSquishNet
         public override void Compress4(ref byte[] block, int offset)
         {
             // build the table of lookups
-            SingleColourLookup[][] lookups = new SingleColourLookup[][]
+            var lookups = new SingleColourLookup[][]
             {
                 SingleColourLookupIns.Lookup54, 
                 SingleColourLookupIns.Lookup64, 
@@ -111,7 +111,7 @@ namespace LibSquishNet
             if( _mError < _mBesterror )
             {
                     // remap the indices
-                    byte[] indices = new byte[16];
+                    var indices = new byte[16];
                     MColours.RemapIndices(new byte[] { _mIndex }, indices);
                 
                     // save the block

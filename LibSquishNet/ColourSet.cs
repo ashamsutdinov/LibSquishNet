@@ -19,14 +19,14 @@ namespace LibSquishNet
         public ColourSet(byte[] rgba, int mask, SquishFlags flags)
         {
             // check the compression mode for dxt1
-            bool isDxt1 = ((flags & SquishFlags.KDxt1) != 0);
-            bool weightByAlpha = ((flags & SquishFlags.KWeightColourByAlpha) != 0);
+            var isDxt1 = ((flags & SquishFlags.KDxt1) != 0);
+            var weightByAlpha = ((flags & SquishFlags.KWeightColourByAlpha) != 0);
 
             // create the minimal set
-            for (int i = 0; i < 16; ++i)
+            for (var i = 0; i < 16; ++i)
             {
                 // check this pixel is enabled
-                int bit = 1 << i;
+                var bit = 1 << i;
                 if ((mask & bit) == 0)
                 {
                     _mRemap[i] = -1;
@@ -42,18 +42,18 @@ namespace LibSquishNet
                 }
 
                 // loop over previous points for a match
-                for (int j = 0; ; ++j)
+                for (var j = 0; ; ++j)
                 {
                     // allocate a new point
                     if (j == i)
                     {
                         // normalise coordinates to [0,1]
-                        float x = (float)rgba[4 * i] / 255.0f;
-                        float y = (float)rgba[4 * i + 1] / 255.0f;
-                        float z = (float)rgba[4 * i + 2] / 255.0f;
+                        var x = (float)rgba[4 * i] / 255.0f;
+                        var y = (float)rgba[4 * i + 1] / 255.0f;
+                        var z = (float)rgba[4 * i + 2] / 255.0f;
 
                         // ensure there is always non-zero weight even for zero alpha
-                        float w = (float)(rgba[4 * i + 3] + 1) / 256.0f;
+                        var w = (float)(rgba[4 * i + 3] + 1) / 256.0f;
 
                         // add the point
                         _mPoints[_mCount] = new Vector3(x, y, z);
@@ -66,8 +66,8 @@ namespace LibSquishNet
                     }
 
                     // check for a match
-                    int oldbit = 1 << j;
-                    bool match = ((mask & oldbit) != 0)
+                    var oldbit = 1 << j;
+                    var match = ((mask & oldbit) != 0)
                             && (rgba[4 * i] == rgba[4 * j])
                             && (rgba[4 * i + 1] == rgba[4 * j + 1])
                             && (rgba[4 * i + 2] == rgba[4 * j + 2])
@@ -75,10 +75,10 @@ namespace LibSquishNet
                     if (match)
                     {
                         // get the index of the match
-                        int index = _mRemap[j];
+                        var index = _mRemap[j];
 
                         // ensure there is always non-zero weight even for zero alpha
-                        float w = (float)(rgba[4 * i + 3] + 1) / 256.0f;
+                        var w = (float)(rgba[4 * i + 3] + 1) / 256.0f;
 
                         // map to this point and increase the weight
                         _mWeights[index] += (weightByAlpha ? w : 1.0f);
@@ -89,7 +89,7 @@ namespace LibSquishNet
             }
 
             // square root the weights
-            for (int i = 0; i < _mCount; ++i)
+            for (var i = 0; i < _mCount; ++i)
             {
                 _mWeights[i] = (float)Math.Sqrt(_mWeights[i]);
             }
@@ -97,9 +97,9 @@ namespace LibSquishNet
 
         public void RemapIndices(byte[] source, byte[] target)
         {
-            for (int i = 0; i < 16; ++i)
+            for (var i = 0; i < 16; ++i)
             {
-                int j = _mRemap[i];
+                var j = _mRemap[i];
                 if (j == -1)
                 {
                     target[i] = 3;

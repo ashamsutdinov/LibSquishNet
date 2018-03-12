@@ -13,7 +13,7 @@
 
         public void Compress(ref byte[] block, int offset)
         {
-            bool isDxt1 = ((MFlags & SquishFlags.KDxt1) != 0);
+            var isDxt1 = ((MFlags & SquishFlags.KDxt1) != 0);
 
             if (isDxt1)
             {
