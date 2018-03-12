@@ -5,11 +5,11 @@ namespace LibSquishNet
 {
     public class ColourSet
     {
-        int _mCount = 0;
-        Vector3[] _mPoints = new Vector3[16];
-        float[] _mWeights = new float[16];
-        int[] _mRemap = new int[16];
-        bool _mTransparent = false;
+        readonly int _mCount = 0;
+        readonly Vector3[] _mPoints = new Vector3[16];
+        readonly float[] _mWeights = new float[16];
+        readonly int[] _mRemap = new int[16];
+        readonly bool _mTransparent = false;
 
         public int Count { get { return _mCount; } }
         public bool IsTransparent { get { return _mTransparent; } }

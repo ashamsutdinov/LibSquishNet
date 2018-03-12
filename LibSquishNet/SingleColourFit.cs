@@ -4,7 +4,7 @@ namespace LibSquishNet
 {
     public class SingleColourFit : ColourFit
     {
-        byte[] _mColour = new byte[3];
+        readonly byte[] _mColour = new byte[3];
         Vector3 _mStart;
         Vector3 _mEnd;
         byte _mIndex;

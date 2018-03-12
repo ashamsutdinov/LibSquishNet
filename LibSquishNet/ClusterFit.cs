@@ -4,12 +4,12 @@ namespace LibSquishNet
 {
     public class ClusterFit : ColourFit
     {
-        int _mIterationCount;
-        Vector3 _mPrinciple;
-        byte[] _mOrder = new byte[16 * 8];
-        Vector4[] _mPointsWeights = new Vector4[16];
+        readonly int _mIterationCount;
+        readonly Vector3 _mPrinciple;
+        readonly byte[] _mOrder = new byte[16 * 8];
+        readonly Vector4[] _mPointsWeights = new Vector4[16];
         Vector4 _mXsumWsum;
-        Vector4 _mMetric;
+        readonly Vector4 _mMetric;
         Vector4 _mBesterror;
 
         public ClusterFit(ColourSet colours, SquishFlags flags, float? metric)
