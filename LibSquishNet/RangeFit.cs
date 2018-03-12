@@ -3,12 +3,16 @@ using System.Numerics;
 
 namespace LibSquishNet
 {
-    public class RangeFit : ColourFit
+    public class RangeFit :
+        ColourFit
     {
         private readonly Vector3 _mMetric;
+
         private readonly Vector3 _mStart;
+
         private readonly Vector3 _mEnd;
         private float _mBesterror;
+
 
         public RangeFit(ColourSet colours, SquishFlags flags, float? metric)
             : base(colours, flags)
@@ -42,11 +46,11 @@ namespace LibSquishNet
             var end = new Vector3(0.0f);
             if (count > 0)
             {
-                float min, max;
+                float max;
 
                 // compute the range
                 start = end = values[0];
-                min = max = Vector3.Dot(values[0], principle);
+                var min = max = Vector3.Dot(values[0], principle);
                 for (var i = 1; i < count; ++i)
                 {
                     var val = Vector3.Dot(values[i], principle);

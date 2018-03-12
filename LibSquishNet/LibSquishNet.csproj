@@ -48,11 +48,14 @@
     <Compile Include="ColourFit.cs" />
     <Compile Include="ColourSet.cs" />
     <Compile Include="Helpers.cs" />
-    <Compile Include="Maths.cs" />
+    <Compile Include="SingleColourLookupIns.cs" />
+    <Compile Include="SquishFlags.cs" />
+    <Compile Include="Sym3X3.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RangeFit.cs" />
     <Compile Include="SingleColourFit.cs" />
     <Compile Include="SingleColourLookup.cs" />
+    <Compile Include="SourceBlock.cs" />
     <Compile Include="Squish.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

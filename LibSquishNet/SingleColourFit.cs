@@ -2,13 +2,19 @@
 
 namespace LibSquishNet
 {
-    public class SingleColourFit : ColourFit
+    public class SingleColourFit :
+        ColourFit
     {
         private readonly byte[] _mColour = new byte[3];
+
         private Vector3 _mStart;
+
         private Vector3 _mEnd;
+
         private byte _mIndex;
+
         private int _mError;
+
         private int _mBesterror;
 
         public SingleColourFit(ColourSet colours, SquishFlags flags)
@@ -24,7 +30,7 @@ namespace LibSquishNet
             _mBesterror = int.MaxValue;
         }
 
-        public void ComputeEndPoints(SingleColourLookup[][] lookups)
+        private void ComputeEndPoints(SingleColourLookup[][] lookups)
         {
             // check each index combination (endpoint or intermediate)
             _mError = int.MaxValue;
@@ -48,28 +54,28 @@ namespace LibSquishNet
                 }
 
                 // keep it if the error is lower
-                if (error < _mError)
-                {
-                    _mStart = new Vector3(
-                            sources[0].Start / 31.0f,
-                            sources[1].Start / 63.0f,
-                            sources[2].Start / 31.0f
+                if (error >= _mError)
+                    continue;
+
+                _mStart = new Vector3(
+                    sources[0].Start / 31.0f,
+                    sources[1].Start / 63.0f,
+                    sources[2].Start / 31.0f
                     );
-                    _mEnd = new Vector3(
-                            sources[0].End / 31.0f,
-                            sources[1].End / 63.0f,
-                            sources[2].End / 31.0f
+                _mEnd = new Vector3(
+                    sources[0].End / 31.0f,
+                    sources[1].End / 63.0f,
+                    sources[2].End / 31.0f
                     );
-                    _mIndex = (byte)(2 * index);
-                    _mError = error;
-                }
+                _mIndex = (byte)(2 * index);
+                _mError = error;
             }
         }
 
         protected override void Compress3(ref byte[] block, int offset)
         {
             // build the table of lookups
-            var lookups = new SingleColourLookup[][]
+            var lookups = new[]
             {
                 SingleColourLookupIns.Lookup53, 
                 SingleColourLookupIns.Lookup63, 
@@ -80,24 +86,24 @@ namespace LibSquishNet
             ComputeEndPoints(lookups);
 
             // build the block if we win
-            if (_mError < _mBesterror)
-            {
-                // remap the indices
-                var indices = new byte[16];
-                MColours.RemapIndices(new byte[] { _mIndex }, indices);
+            if (_mError >= _mBesterror)
+                return;
 
-                // save the block
-                ColourBlock.WriteColourBlock3(_mStart, _mEnd, indices, ref block, offset);
+            // remap the indices
+            var indices = new byte[16];
+            MColours.RemapIndices(new[] { _mIndex }, indices);
 
-                // save the error
-                _mBesterror = _mError;
-            }
+            // save the block
+            ColourBlock.WriteColourBlock3(_mStart, _mEnd, indices, ref block, offset);
+
+            // save the error
+            _mBesterror = _mError;
         }
 
         protected override void Compress4(ref byte[] block, int offset)
         {
             // build the table of lookups
-            var lookups = new SingleColourLookup[][]
+            var lookups = new[]
             {
                 SingleColourLookupIns.Lookup54, 
                 SingleColourLookupIns.Lookup64, 
@@ -108,18 +114,18 @@ namespace LibSquishNet
             ComputeEndPoints( lookups );
         
             // build the block if we win
-            if( _mError < _mBesterror )
-            {
-                    // remap the indices
-                    var indices = new byte[16];
-                    MColours.RemapIndices(new byte[] { _mIndex }, indices);
-                
-                    // save the block
-                    ColourBlock.WriteColourBlock4( _mStart, _mEnd, indices, ref block, offset );
+            if (_mError >= _mBesterror)
+                return;
 
-                    // save the error
-                    _mBesterror = _mError;
-            }
+            // remap the indices
+            var indices = new byte[16];
+            MColours.RemapIndices(new[] { _mIndex }, indices);
+                
+            // save the block
+            ColourBlock.WriteColourBlock4( _mStart, _mEnd, indices, ref block, offset );
+
+            // save the error
+            _mBesterror = _mError;
         }
     }
 }

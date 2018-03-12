@@ -5,16 +5,16 @@ namespace LibSquishNet
 {
     public class ColourSet
     {
-        private readonly int _mCount;
-        private readonly Vector3[] _mPoints = new Vector3[16];
-        private readonly float[] _mWeights = new float[16];
         private readonly int[] _mRemap = new int[16];
-        private readonly bool _mTransparent;
 
-        public int Count { get { return _mCount; } }
-        public bool IsTransparent { get { return _mTransparent; } }
-        public Vector3[] Points { get { return _mPoints; } }
-        public float[] Weights { get { return _mWeights; } }
+        public int Count { get; }
+
+        public bool IsTransparent { get; }
+
+        public Vector3[] Points { get; } = new Vector3[16];
+
+        public float[] Weights { get; } = new float[16];
+
 
         public ColourSet(byte[] rgba, int mask, SquishFlags flags)
         {
@@ -37,7 +37,7 @@ namespace LibSquishNet
                 if (isDxt1 && rgba[4 * i + 3] < 128)
                 {
                     _mRemap[i] = -1;
-                    _mTransparent = true;
+                    IsTransparent = true;
                     continue;
                 }
 
@@ -56,12 +56,12 @@ namespace LibSquishNet
                         var w = (rgba[4 * i + 3] + 1) / 256.0f;
 
                         // add the point
-                        _mPoints[_mCount] = new Vector3(x, y, z);
-                        _mWeights[_mCount] = weightByAlpha ? w : 1.0f;
-                        _mRemap[i] = _mCount;
+                        Points[Count] = new Vector3(x, y, z);
+                        Weights[Count] = weightByAlpha ? w : 1.0f;
+                        _mRemap[i] = Count;
 
                         // advance
-                        ++_mCount;
+                        ++Count;
                         break;
                     }
 
@@ -81,7 +81,7 @@ namespace LibSquishNet
                         var w = (rgba[4 * i + 3] + 1) / 256.0f;
 
                         // map to this point and increase the weight
-                        _mWeights[index] += weightByAlpha ? w : 1.0f;
+                        Weights[index] += weightByAlpha ? w : 1.0f;
                         _mRemap[i] = index;
                         break;
                     }
@@ -89,9 +89,9 @@ namespace LibSquishNet
             }
 
             // square root the weights
-            for (var i = 0; i < _mCount; ++i)
+            for (var i = 0; i < Count; ++i)
             {
-                _mWeights[i] = (float)Math.Sqrt(_mWeights[i]);
+                Weights[i] = (float)Math.Sqrt(Weights[i]);
             }
         }
 
