@@ -77,7 +77,7 @@ namespace LibSquishNet
             _mEnd = Helpers.Truncate(grid * end + half) * gridrcp;
         }
 
-        public override void Compress3(ref byte[] block, int offset)
+        protected override void Compress3(ref byte[] block, int offset)
         {
             // cache some values
             var count = MColours.Count;
@@ -129,7 +129,7 @@ namespace LibSquishNet
             }
         }
 
-        public override void Compress4(ref byte[] block, int offset) 
+        protected override void Compress4(ref byte[] block, int offset) 
         {
             throw new NotImplementedException("RangeFit.Compress4");
         }

@@ -2,10 +2,11 @@
 {
     public class ColourFit
     {
-        protected ColourSet MColours;
-        protected SquishFlags MFlags;
+        protected readonly ColourSet MColours;
 
-        public ColourFit(ColourSet colours, SquishFlags flags)
+        protected readonly SquishFlags MFlags;
+
+        protected ColourFit(ColourSet colours, SquishFlags flags)
         {
             MColours = colours;
             MFlags = flags;
@@ -29,7 +30,14 @@
             }
         }
 
-        public virtual void Compress3(ref byte[] block, int offset) { }
-        public virtual void Compress4(ref byte[] block, int offset) { }
+        protected virtual void Compress3(ref byte[] block, int offset)
+        {
+            
+        }
+
+        protected virtual void Compress4(ref byte[] block, int offset)
+        {
+            
+        }
     }
 }

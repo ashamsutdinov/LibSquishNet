@@ -111,7 +111,7 @@ namespace LibSquishNet
             return true;
         }
 
-        public override void Compress3(ref byte[] block, int offset)
+        protected override void Compress3(ref byte[] block, int offset)
         {
             // declare variables
             var count = MColours.Count;
@@ -239,7 +239,7 @@ namespace LibSquishNet
             }
         }
 
-        public override void Compress4(ref byte[] block, int offset)
+        protected override void Compress4(ref byte[] block, int offset)
         {
             // declare variables
             var count = MColours.Count;

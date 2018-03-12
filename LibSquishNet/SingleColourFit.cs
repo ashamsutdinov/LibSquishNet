@@ -66,7 +66,7 @@ namespace LibSquishNet
             }
         }
 
-        public override void Compress3(ref byte[] block, int offset)
+        protected override void Compress3(ref byte[] block, int offset)
         {
             // build the table of lookups
             var lookups = new SingleColourLookup[][]
@@ -94,7 +94,7 @@ namespace LibSquishNet
             }
         }
 
-        public override void Compress4(ref byte[] block, int offset)
+        protected override void Compress4(ref byte[] block, int offset)
         {
             // build the table of lookups
             var lookups = new SingleColourLookup[][]
