@@ -2,31 +2,31 @@
 {
     public struct SourceBlock
     {
-        public byte start;
-        public byte end;
-        public byte error;
+        public byte Start;
+        public byte End;
+        public byte Error;
 
         public SourceBlock(byte s, byte e, byte err)
         {
-            start = s;
-            end = e;
-            error = err;
+            Start = s;
+            End = e;
+            Error = err;
         }
     };
 
     public struct SingleColourLookup
     {
-        public SourceBlock[] sources;
+        public SourceBlock[] Sources;
 
         public SingleColourLookup(SourceBlock a, SourceBlock b)
         {
-            sources = new SourceBlock[] { a, b };
+            Sources = new SourceBlock[] { a, b };
         }
     };
 
     public static class SingleColourLookupIns
     {
-        public static SingleColourLookup[] lookup_5_3 = new SingleColourLookup[]
+        public static SingleColourLookup[] Lookup53 = new SingleColourLookup[]
         {
             new SingleColourLookup( new SourceBlock(0, 0, 0 ), new SourceBlock( 0, 0, 0 ) ),
             new SingleColourLookup( new SourceBlock( 0, 0, 1 ), new SourceBlock( 0, 0, 1 ) ),
@@ -286,7 +286,7 @@
             new SingleColourLookup( new SourceBlock( 31, 0, 0 ), new SourceBlock( 31, 31, 0 ) )
         };
 
-        public static SingleColourLookup[] lookup_6_3 = new SingleColourLookup[]
+        public static SingleColourLookup[] Lookup63 = new SingleColourLookup[]
         {
             new SingleColourLookup( new SourceBlock( 0, 0, 0 ), new SourceBlock( 0, 0, 0  ) ),
             new SingleColourLookup( new SourceBlock( 0, 0, 1 ), new SourceBlock( 0, 1, 1  ) ),
@@ -546,7 +546,7 @@
             new SingleColourLookup( new SourceBlock( 63, 0, 0 ), new SourceBlock( 63, 63, 0 ))
         };
 
-        public static SingleColourLookup[] lookup_5_4 = new SingleColourLookup[]
+        public static SingleColourLookup[] Lookup54 = new SingleColourLookup[]
 {
         new SingleColourLookup( new SourceBlock( 0, 0, 0 ), new SourceBlock( 0, 0, 0 ) ),
         new SingleColourLookup( new SourceBlock( 0, 0, 1 ), new SourceBlock( 0, 1, 1 ) ),
@@ -806,7 +806,7 @@
         new SingleColourLookup( new SourceBlock( 31, 0, 0 ), new SourceBlock( 31, 31, 0 ) )
 };
 
-public static SingleColourLookup[] lookup_6_4 = new SingleColourLookup[]
+public static SingleColourLookup[] Lookup64 = new SingleColourLookup[]
 {
         new SingleColourLookup( new SourceBlock( 0, 0, 0 ), new SourceBlock( 0, 0, 0 ) ),
         new SingleColourLookup( new SourceBlock( 0, 0, 1 ), new SourceBlock( 0, 1, 0 ) ),

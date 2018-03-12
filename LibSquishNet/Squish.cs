@@ -6,25 +6,25 @@ namespace LibSquishNet
     public enum SquishFlags
     {
         //! Use DXT1 compression.
-        kDxt1 = 1,
+        KDxt1 = 1,
 
         //! Use DXT3 compression.
-        kDxt3 = 2,
+        KDxt3 = 2,
 
         //! Use DXT5 compression.
-        kDxt5 = 4,
+        KDxt5 = 4,
 
         //! Use a very slow but very high quality colour compressor.
-        kColourIterativeClusterFit = 256,
+        KColourIterativeClusterFit = 256,
 
         //! Use a slow but high quality colour compressor (the default).
-        kColourClusterFit = 8,
+        KColourClusterFit = 8,
 
         //! Use a fast but low quality colour compressor.
-        kColourRangeFit = 16,
+        KColourRangeFit = 16,
 
         //! Weight the colour by alpha during cluster fit (disabled by default).
-        kWeightColourByAlpha = 128
+        KWeightColourByAlpha = 128
     };
 
     public static class Squish
@@ -32,13 +32,13 @@ namespace LibSquishNet
         static SquishFlags FixFlags(SquishFlags flags)
         {
             // grab the flag bits
-            var method = flags & (SquishFlags.kDxt1 | SquishFlags.kDxt3 | SquishFlags.kDxt5);
-            var fit = flags & (SquishFlags.kColourIterativeClusterFit | SquishFlags.kColourClusterFit | SquishFlags.kColourRangeFit);
-            var extra = flags & SquishFlags.kWeightColourByAlpha;
+            var method = flags & (SquishFlags.KDxt1 | SquishFlags.KDxt3 | SquishFlags.KDxt5);
+            var fit = flags & (SquishFlags.KColourIterativeClusterFit | SquishFlags.KColourClusterFit | SquishFlags.KColourRangeFit);
+            var extra = flags & SquishFlags.KWeightColourByAlpha;
 
             // set defaults
-            if (method != SquishFlags.kDxt3 && method != SquishFlags.kDxt5) { method = SquishFlags.kDxt1; }
-            if (fit != SquishFlags.kColourRangeFit && fit != SquishFlags.kColourIterativeClusterFit) { fit = SquishFlags.kColourClusterFit; }
+            if (method != SquishFlags.KDxt3 && method != SquishFlags.KDxt5) { method = SquishFlags.KDxt1; }
+            if (fit != SquishFlags.KColourRangeFit && fit != SquishFlags.KColourIterativeClusterFit) { fit = SquishFlags.KColourClusterFit; }
 
             // done
             return method | fit | extra;
@@ -51,7 +51,7 @@ namespace LibSquishNet
 
             // compute the storage requirements
             int blockcount = ((width + 3) / 4) * ((height + 3) / 4);
-            int blocksize = ((flags & SquishFlags.kDxt1) != 0) ? 8 : 16;
+            int blocksize = ((flags & SquishFlags.KDxt1) != 0) ? 8 : 16;
             return blockcount * blocksize;
         }
 
@@ -62,7 +62,7 @@ namespace LibSquishNet
 
             // initialise the block input
             int sourceBlock = 0;
-            int bytesPerBlock = ((flags & SquishFlags.kDxt1) != 0) ? 8 : 16;
+            int bytesPerBlock = ((flags & SquishFlags.KDxt1) != 0) ? 8 : 16;
 
             // loop over blocks
             for (int y = 0; y < height; y += 4)
@@ -117,18 +117,18 @@ namespace LibSquishNet
             // get the block locations
             int colourBlock = offset;
             int alphaBlock = offset;
-            if ((flags & (SquishFlags.kDxt3 | SquishFlags.kDxt5)) != 0) { colourBlock += 8; }
+            if ((flags & (SquishFlags.KDxt3 | SquishFlags.KDxt5)) != 0) { colourBlock += 8; }
 
             // decompress colour
-            ColourBlock.DecompressColour(rgba, ref block, colourBlock, (flags & SquishFlags.kDxt1) != 0);
+            ColourBlock.DecompressColour(rgba, ref block, colourBlock, (flags & SquishFlags.KDxt1) != 0);
 
             // decompress alpha separately if necessary
-            if ((flags & SquishFlags.kDxt3) != 0)
+            if ((flags & SquishFlags.KDxt3) != 0)
             {
                 throw new NotImplementedException("Squish.DecompressAlphaDxt3");
                 //DecompressAlphaDxt3(rgba, alphaBlock);
             }
-            else if ((flags & SquishFlags.kDxt5) != 0)
+            else if ((flags & SquishFlags.KDxt5) != 0)
             {
                 DecompressAlphaDxt5(rgba, ref block, alphaBlock);
             }
@@ -141,7 +141,7 @@ namespace LibSquishNet
 
             // initialise the block output
             int targetBlock = 0;
-            int bytesPerBlock = (flags.HasFlag(SquishFlags.kDxt1) ? 8 : 16);
+            int bytesPerBlock = (flags.HasFlag(SquishFlags.KDxt1) ? 8 : 16);
 
             // loop over blocks
             for (int y = 0; y < height; y += 4)
@@ -199,7 +199,7 @@ namespace LibSquishNet
             // get the block locations
             int colourBlock = offset;
             int alphaBlock = offset;
-            if ((flags & (SquishFlags.kDxt3 | SquishFlags.kDxt5)) != 0) { colourBlock += 8; }
+            if ((flags & (SquishFlags.KDxt3 | SquishFlags.KDxt5)) != 0) { colourBlock += 8; }
 
             // create the minimal point set
             ColourSet colours = new ColourSet(rgba, mask, flags);
@@ -211,7 +211,7 @@ namespace LibSquishNet
                 SingleColourFit fit = new SingleColourFit(colours, flags);
                 fit.Compress(ref block, colourBlock);
             }
-            else if ((flags & SquishFlags.kColourRangeFit) != 0 || colours.Count == 0)
+            else if ((flags & SquishFlags.KColourRangeFit) != 0 || colours.Count == 0)
             {
                 // do a range fit
                 RangeFit fit = new RangeFit(colours, flags, metric);
@@ -225,11 +225,11 @@ namespace LibSquishNet
             }
 
             // compress alpha separately if necessary
-            if ((flags & SquishFlags.kDxt3) != 0)
+            if ((flags & SquishFlags.KDxt3) != 0)
             {
                 CompressAlphaDxt3(rgba, mask, ref block, alphaBlock);
             }
-            else if ((flags & SquishFlags.kDxt5) != 0)
+            else if ((flags & SquishFlags.KDxt5) != 0)
             {
                 CompressAlphaDxt5(rgba, mask, ref block, alphaBlock);
             }

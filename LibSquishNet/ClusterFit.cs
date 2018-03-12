@@ -4,19 +4,19 @@ namespace LibSquishNet
 {
     public class ClusterFit : ColourFit
     {
-        int m_iterationCount;
-        Vector3 m_principle;
-        byte[] m_order = new byte[16 * 8];
-        Vector4[] m_points_weights = new Vector4[16];
-        Vector4 m_xsum_wsum;
-        Vector4 m_metric;
-        Vector4 m_besterror;
+        int _mIterationCount;
+        Vector3 _mPrinciple;
+        byte[] _mOrder = new byte[16 * 8];
+        Vector4[] _mPointsWeights = new Vector4[16];
+        Vector4 _mXsumWsum;
+        Vector4 _mMetric;
+        Vector4 _mBesterror;
 
         public ClusterFit(ColourSet colours, SquishFlags flags, float? metric)
             : base(colours, flags)
         {
             // set the iteration count
-            m_iterationCount = ((m_flags & SquishFlags.kColourIterativeClusterFit) != 0 ? 8 : 1);
+            _mIterationCount = ((MFlags & SquishFlags.KColourIterativeClusterFit) != 0 ? 8 : 1);
 
             // initialise the metric (old perceptual = 0.2126f, 0.7152f, 0.0722f)
             if (metric != null)
@@ -25,28 +25,28 @@ namespace LibSquishNet
             }
             else
             {
-                m_metric = new Vector4(1.0f);
+                _mMetric = new Vector4(1.0f);
             }
 
             // initialise the best error
-            m_besterror = new Vector4(float.MaxValue);
+            _mBesterror = new Vector4(float.MaxValue);
 
             // cache some values
-            int count = m_colours.Count;
-            Vector3[] values = m_colours.Points;
+            int count = MColours.Count;
+            Vector3[] values = MColours.Points;
 
             // get the covariance matrix
-            Sym3x3 covariance = Sym3x3.ComputeWeightedCovariance(count, values, m_colours.Weights);
+            Sym3X3 covariance = Sym3X3.ComputeWeightedCovariance(count, values, MColours.Weights);
 
             // compute the principle component
-            m_principle = Sym3x3.ComputePrincipleComponent(covariance);
+            _mPrinciple = Sym3X3.ComputePrincipleComponent(covariance);
         }
 
         public bool ConstructOrdering(Vector3 axis, int iteration)
         {
             // cache some values
-            int count = m_colours.Count;
-            Vector3[] values = m_colours.Points;
+            int count = MColours.Count;
+            Vector3[] values = MColours.Points;
 
             // build the list of dot products
             float[] dps = new float[16];
@@ -54,7 +54,7 @@ namespace LibSquishNet
             for (int i = 0; i < count; ++i)
             {
                 dps[i] = Vector3.Dot(values[i], axis);
-                m_order[(16 * iteration) + i] = (byte)i;
+                _mOrder[(16 * iteration) + i] = (byte)i;
             }
 
             // stable sort using them
@@ -66,9 +66,9 @@ namespace LibSquishNet
                     dps[j] = dps[j - 1];
                     dps[j - 1] = tf;
 
-                    byte tb = m_order[(16 * iteration) + j];
-                    m_order[(16 * iteration) + j] = m_order[(16 * iteration) + j - 1];
-                    m_order[(16 * iteration) + j - 1] = tb;
+                    byte tb = _mOrder[(16 * iteration) + j];
+                    _mOrder[(16 * iteration) + j] = _mOrder[(16 * iteration) + j - 1];
+                    _mOrder[(16 * iteration) + j - 1] = tb;
                 }
             }
 
@@ -78,7 +78,7 @@ namespace LibSquishNet
                 bool same = true;
                 for (int i = 0; i < count; ++i)
                 {
-                    if (m_order[(16 * iteration) + i] != m_order[(16 * it) + i])
+                    if (_mOrder[(16 * iteration) + i] != _mOrder[(16 * it) + i])
                     {
                         same = false;
                         break;
@@ -89,17 +89,17 @@ namespace LibSquishNet
             }
 
             // copy the ordering and weight all the points
-            Vector3[] unweighted = m_colours.Points;
-            float[] weights = m_colours.Weights;
-            m_xsum_wsum = new Vector4(0.0f);
+            Vector3[] unweighted = MColours.Points;
+            float[] weights = MColours.Weights;
+            _mXsumWsum = new Vector4(0.0f);
             for (int i = 0; i < count; ++i)
             {
-                int j = m_order[(16 * iteration) + i];
+                int j = _mOrder[(16 * iteration) + i];
                 Vector4 p = new Vector4(unweighted[j].X, unweighted[j].Y, unweighted[j].Z, 1.0f);
                 Vector4 w = new Vector4(weights[j]);
                 Vector4 x = p * w;
-                m_points_weights[i] = x;
-                m_xsum_wsum += x;
+                _mPointsWeights[i] = x;
+                _mXsumWsum += x;
             }
             return true;
         }
@@ -107,22 +107,22 @@ namespace LibSquishNet
         public override void Compress3(ref byte[] block, int offset)
         {
             // declare variables
-            int count = m_colours.Count;
+            int count = MColours.Count;
             Vector4 two = new Vector4(2.0f);
             Vector4 one = new Vector4(1.0f);
-            Vector4 half_half2 = new Vector4(0.5f, 0.5f, 0.5f, 0.25f);
+            Vector4 halfHalf2 = new Vector4(0.5f, 0.5f, 0.5f, 0.25f);
             Vector4 zero = new Vector4(0.0f);
             Vector4 half = new Vector4(0.5f);
             Vector4 grid = new Vector4(31.0f, 63.0f, 31.0f, 0.0f);
             Vector4 gridrcp = new Vector4(1.0f / 31.0f, 1.0f / 63.0f, 1.0f / 31.0f, 0.0f);
 
             // prepare an ordering using the principle axis
-            ConstructOrdering(m_principle, 0);
+            ConstructOrdering(_mPrinciple, 0);
 
             // check all possible clusters and iterate on the total order
             Vector4 beststart = new Vector4(0.0f);
             Vector4 bestend = new Vector4(0.0f);
-            Vector4 besterror = m_besterror;
+            Vector4 besterror = _mBesterror;
             byte[] bestindices = new byte[16];
             int bestiteration = 0;
             int besti = 0, bestj = 0;
@@ -135,26 +135,26 @@ namespace LibSquishNet
                 for (int i = 0; i < count; ++i)
                 {
                     // second cluster [i,j) is half along
-                    Vector4 part1 = (i == 0) ? m_points_weights[0] : new Vector4(0.0f);
+                    Vector4 part1 = (i == 0) ? _mPointsWeights[0] : new Vector4(0.0f);
                     int jmin = (i == 0) ? 1 : i;
                     for (int j = jmin; ; )
                     {
                         // last cluster [j,count) is at the end
-                        Vector4 part2 = m_xsum_wsum - part1 - part0;
+                        Vector4 part2 = _mXsumWsum - part1 - part0;
 
                         // compute least squares terms directly
-                        Vector4 alphax_sum = Helpers.MultiplyAdd(part1, half_half2, part0);
-                        Vector4 alpha2_sum = alphax_sum.SplatW();
+                        Vector4 alphaxSum = Helpers.MultiplyAdd(part1, halfHalf2, part0);
+                        Vector4 alpha2Sum = alphaxSum.SplatW();
 
-                        Vector4 betax_sum = Helpers.MultiplyAdd(part1, half_half2, part2);
-                        Vector4 beta2_sum = betax_sum.SplatW();
+                        Vector4 betaxSum = Helpers.MultiplyAdd(part1, halfHalf2, part2);
+                        Vector4 beta2Sum = betaxSum.SplatW();
 
-                        Vector4 alphabeta_sum = (part1 * half_half2).SplatW();
+                        Vector4 alphabetaSum = (part1 * halfHalf2).SplatW();
 
                         // compute the least-squares optimal points
-                        Vector4 factor = Helpers.Reciprocal(Helpers.NegativeMultiplySubtract(alphabeta_sum, alphabeta_sum, alpha2_sum * beta2_sum));
-                        Vector4 a = Helpers.NegativeMultiplySubtract(betax_sum, alphabeta_sum, alphax_sum * beta2_sum) * factor;
-                        Vector4 b = Helpers.NegativeMultiplySubtract(alphax_sum, alphabeta_sum, betax_sum * alpha2_sum) * factor;
+                        Vector4 factor = Helpers.Reciprocal(Helpers.NegativeMultiplySubtract(alphabetaSum, alphabetaSum, alpha2Sum * beta2Sum));
+                        Vector4 a = Helpers.NegativeMultiplySubtract(betaxSum, alphabetaSum, alphaxSum * beta2Sum) * factor;
+                        Vector4 b = Helpers.NegativeMultiplySubtract(alphaxSum, alphabetaSum, betaxSum * alpha2Sum) * factor;
 
                         // clamp to the grid
                         a = Vector4.Min(one, Vector4.Max(zero, a));
@@ -163,13 +163,13 @@ namespace LibSquishNet
                         b = Helpers.Truncate(Helpers.MultiplyAdd(grid, b, half)) * gridrcp;
 
                         // compute the error (we skip the constant xxsum)
-                        Vector4 e1 = Helpers.MultiplyAdd(a * a, alpha2_sum, b * b * beta2_sum);
-                        Vector4 e2 = Helpers.NegativeMultiplySubtract(a, alphax_sum, a * b * alphabeta_sum);
-                        Vector4 e3 = Helpers.NegativeMultiplySubtract(b, betax_sum, e2);
+                        Vector4 e1 = Helpers.MultiplyAdd(a * a, alpha2Sum, b * b * beta2Sum);
+                        Vector4 e2 = Helpers.NegativeMultiplySubtract(a, alphaxSum, a * b * alphabetaSum);
+                        Vector4 e3 = Helpers.NegativeMultiplySubtract(b, betaxSum, e2);
                         Vector4 e4 = Helpers.MultiplyAdd( two, e3, e1);
 
                         // apply the metric to the error term
-                        Vector4 e5 = e4 * m_metric;
+                        Vector4 e5 = e4 * _mMetric;
                         Vector4 error = e5.SplatX() + e5.SplatY() + e5.SplatZ();
 
                         // keep the solution if it wins
@@ -186,12 +186,12 @@ namespace LibSquishNet
                         // advance
                         if (j == count)
                             break;
-                        part1 += m_points_weights[j];
+                        part1 += _mPointsWeights[j];
                         ++j;
                     }
 
                     // advance
-                    part0 += m_points_weights[i];
+                    part0 += _mPointsWeights[i];
                 }
 
                 // stop if we didn't improve in this iteration
@@ -200,7 +200,7 @@ namespace LibSquishNet
 
                 // advance if possible
                 ++iterationIndex;
-                if (iterationIndex == m_iterationCount)
+                if (iterationIndex == _mIterationCount)
                     break;
 
                 // stop if a new iteration is an ordering that has already been tried
@@ -210,34 +210,34 @@ namespace LibSquishNet
             }
 
             // save the block if necessary
-            if (Helpers.CompareAnyLessThan(besterror, m_besterror))
+            if (Helpers.CompareAnyLessThan(besterror, _mBesterror))
             {
                 byte[] unordered = new byte[16];
                 for (int m = 0; m < besti; ++m)
-                    unordered[m_order[(16 * bestiteration) + m]] = 0;
+                    unordered[_mOrder[(16 * bestiteration) + m]] = 0;
                 for (int m = besti; m < bestj; ++m)
-                    unordered[m_order[(16 * bestiteration) + m]] = 2;
+                    unordered[_mOrder[(16 * bestiteration) + m]] = 2;
                 for (int m = bestj; m < count; ++m)
-                    unordered[m_order[(16 * bestiteration) + m]] = 1;
+                    unordered[_mOrder[(16 * bestiteration) + m]] = 1;
 
-                m_colours.RemapIndices(unordered, bestindices);
+                MColours.RemapIndices(unordered, bestindices);
 
                 // save the block
                 ColourBlock.WriteColourBlock3(beststart.ToVector3(), bestend.ToVector3(), bestindices, ref block, offset);
 
                 // save the error
-                m_besterror = besterror;
+                _mBesterror = besterror;
             }
         }
 
         public override void Compress4(ref byte[] block, int offset)
         {
             // declare variables
-            int count = m_colours.Count;
+            int count = MColours.Count;
             Vector4 two = new Vector4(2.0f);
             Vector4 one = new Vector4(1.0f);
-            Vector4 onethird_onethird2 = new Vector4(1.0f / 3.0f, 1.0f / 3.0f, 1.0f / 3.0f, 1.0f / 9.0f);
-            Vector4 twothirds_twothirds2 = new Vector4(2.0f / 3.0f, 2.0f / 3.0f, 2.0f / 3.0f, 4.0f / 9.0f);
+            Vector4 onethirdOnethird2 = new Vector4(1.0f / 3.0f, 1.0f / 3.0f, 1.0f / 3.0f, 1.0f / 9.0f);
+            Vector4 twothirdsTwothirds2 = new Vector4(2.0f / 3.0f, 2.0f / 3.0f, 2.0f / 3.0f, 4.0f / 9.0f);
             Vector4 twonineths = new Vector4(2.0f / 9.0f);
             Vector4 zero = new Vector4(0.0f);
             Vector4 half = new Vector4(0.5f);
@@ -245,12 +245,12 @@ namespace LibSquishNet
             Vector4 gridrcp = new Vector4(1.0f / 31.0f, 1.0f / 63.0f, 1.0f / 31.0f, 0.0f);
 
             // prepare an ordering using the principle axis
-            ConstructOrdering(m_principle, 0);
+            ConstructOrdering(_mPrinciple, 0);
 
             // check all possible clusters and iterate on the total order
             Vector4 beststart = new Vector4(0.0f);
             Vector4 bestend = new Vector4(0.0f);
-            Vector4 besterror = m_besterror;
+            Vector4 besterror = _mBesterror;
             byte[] bestindices = new byte[16];
             int bestiteration = 0;
             int besti = 0, bestj = 0, bestk = 0;
@@ -267,26 +267,26 @@ namespace LibSquishNet
                     for (int j = i; ; )
                     {
                         // third cluster [j,k) is two thirds along
-                        Vector4 part2 = (j == 0) ? m_points_weights[0] : new Vector4(0.0f);
+                        Vector4 part2 = (j == 0) ? _mPointsWeights[0] : new Vector4(0.0f);
                         int kmin = (j == 0) ? 1 : j;
                         for (int k = kmin; ; )
                         {
                             // last cluster [k,count) is at the end
-                            Vector4 part3 = m_xsum_wsum - part2 - part1 - part0;
+                            Vector4 part3 = _mXsumWsum - part2 - part1 - part0;
 
                             // compute least squares terms directly
-                            Vector4 alphax_sum = Helpers.MultiplyAdd(part2, onethird_onethird2, Helpers.MultiplyAdd(part1, twothirds_twothirds2, part0));
-                            Vector4 alpha2_sum = alphax_sum.SplatW();
+                            Vector4 alphaxSum = Helpers.MultiplyAdd(part2, onethirdOnethird2, Helpers.MultiplyAdd(part1, twothirdsTwothirds2, part0));
+                            Vector4 alpha2Sum = alphaxSum.SplatW();
 
-                            Vector4 betax_sum = Helpers.MultiplyAdd(part1, onethird_onethird2, Helpers.MultiplyAdd(part2, twothirds_twothirds2, part3));
-                            Vector4 beta2_sum = betax_sum.SplatW();
+                            Vector4 betaxSum = Helpers.MultiplyAdd(part1, onethirdOnethird2, Helpers.MultiplyAdd(part2, twothirdsTwothirds2, part3));
+                            Vector4 beta2Sum = betaxSum.SplatW();
 
-                            Vector4 alphabeta_sum = twonineths * (part1 + part2).SplatW();
+                            Vector4 alphabetaSum = twonineths * (part1 + part2).SplatW();
 
                             // compute the least-squares optimal points
-                            Vector4 factor = Helpers.Reciprocal(Helpers.NegativeMultiplySubtract(alphabeta_sum, alphabeta_sum, alpha2_sum * beta2_sum));
-                            Vector4 a = Helpers.NegativeMultiplySubtract(betax_sum, alphabeta_sum, alphax_sum * beta2_sum) * factor;
-                            Vector4 b = Helpers.NegativeMultiplySubtract(alphax_sum, alphabeta_sum, betax_sum * alpha2_sum) * factor;
+                            Vector4 factor = Helpers.Reciprocal(Helpers.NegativeMultiplySubtract(alphabetaSum, alphabetaSum, alpha2Sum * beta2Sum));
+                            Vector4 a = Helpers.NegativeMultiplySubtract(betaxSum, alphabetaSum, alphaxSum * beta2Sum) * factor;
+                            Vector4 b = Helpers.NegativeMultiplySubtract(alphaxSum, alphabetaSum, betaxSum * alpha2Sum) * factor;
 
                             // clamp to the grid
                             a = Vector4.Min(one, Vector4.Max(zero, a));
@@ -295,13 +295,13 @@ namespace LibSquishNet
                             b = Helpers.Truncate(Helpers.MultiplyAdd(grid, b, half)) * gridrcp;
 
                             // compute the error (we skip the constant xxsum)
-                            Vector4 e1 = Helpers.MultiplyAdd(a * a, alpha2_sum, b * b * beta2_sum);
-                            Vector4 e2 = Helpers.NegativeMultiplySubtract(a, alphax_sum, a * b * alphabeta_sum);
-                            Vector4 e3 = Helpers.NegativeMultiplySubtract(b, betax_sum, e2);
+                            Vector4 e1 = Helpers.MultiplyAdd(a * a, alpha2Sum, b * b * beta2Sum);
+                            Vector4 e2 = Helpers.NegativeMultiplySubtract(a, alphaxSum, a * b * alphabetaSum);
+                            Vector4 e3 = Helpers.NegativeMultiplySubtract(b, betaxSum, e2);
                             Vector4 e4 = Helpers.MultiplyAdd(two, e3, e1);
 
                             // apply the metric to the error term
-                            Vector4 e5 = e4 * m_metric;
+                            Vector4 e5 = e4 * _mMetric;
                             Vector4 error = e5.SplatX() + e5.SplatY() + e5.SplatZ();
 
                             // keep the solution if it wins
@@ -319,19 +319,19 @@ namespace LibSquishNet
                             // advance
                             if (k == count)
                                 break;
-                            part2 += m_points_weights[k];
+                            part2 += _mPointsWeights[k];
                             ++k;
                         }
 
                         // advance
                         if (j == count)
                             break;
-                        part1 += m_points_weights[j];
+                        part1 += _mPointsWeights[j];
                         ++j;
                     }
 
                     // advance
-                    part0 += m_points_weights[i];
+                    part0 += _mPointsWeights[i];
                 }
 
                 // stop if we didn't improve in this iteration
@@ -340,7 +340,7 @@ namespace LibSquishNet
 
                 // advance if possible
                 ++iterationIndex;
-                if (iterationIndex == m_iterationCount)
+                if (iterationIndex == _mIterationCount)
                     break;
 
                 // stop if a new iteration is an ordering that has already been tried
@@ -350,26 +350,26 @@ namespace LibSquishNet
             }
 
             // save the block if necessary
-            if (Helpers.CompareAnyLessThan(besterror, m_besterror))
+            if (Helpers.CompareAnyLessThan(besterror, _mBesterror))
             {
                 // remap the indices
                 byte[] unordered = new byte[16];
                 for (int m = 0; m < besti; ++m)
-                    unordered[m_order[(16 * bestiteration) + m]] = 0;
+                    unordered[_mOrder[(16 * bestiteration) + m]] = 0;
                 for (int m = besti; m < bestj; ++m)
-                    unordered[m_order[(16 * bestiteration) + m]] = 2;
+                    unordered[_mOrder[(16 * bestiteration) + m]] = 2;
                 for (int m = bestj; m < bestk; ++m)
-                    unordered[m_order[(16 * bestiteration) + m]] = 3;
+                    unordered[_mOrder[(16 * bestiteration) + m]] = 3;
                 for (int m = bestk; m < count; ++m)
-                    unordered[m_order[(16 * bestiteration) + m]] = 1;
+                    unordered[_mOrder[(16 * bestiteration) + m]] = 1;
 
-                m_colours.RemapIndices(unordered, bestindices);
+                MColours.RemapIndices(unordered, bestindices);
 
                 // save the block
                 ColourBlock.WriteColourBlock4(beststart.ToVector3(), bestend.ToVector3(), bestindices, ref block, offset);
 
                 // save the error
-                m_besterror = besterror;
+                _mBesterror = besterror;
             }
         }
     }

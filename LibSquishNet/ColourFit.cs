@@ -2,24 +2,24 @@
 {
     public class ColourFit
     {
-        protected ColourSet m_colours;
-        protected SquishFlags m_flags;
+        protected ColourSet MColours;
+        protected SquishFlags MFlags;
 
         public ColourFit(ColourSet colours, SquishFlags flags)
         {
-            m_colours = colours;
-            m_flags = flags;
+            MColours = colours;
+            MFlags = flags;
         }
 
         public void Compress(ref byte[] block, int offset)
         {
-            bool isDxt1 = ((m_flags & SquishFlags.kDxt1) != 0);
+            bool isDxt1 = ((MFlags & SquishFlags.KDxt1) != 0);
 
             if (isDxt1)
             {
                 Compress3(ref block, offset);
 
-                if (!m_colours.IsTransparent) {
+                if (!MColours.IsTransparent) {
                     Compress4(ref block, offset);
                 }
             }

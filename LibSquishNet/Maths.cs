@@ -2,22 +2,22 @@
 
 namespace LibSquishNet
 {
-    public class Sym3x3
+    public class Sym3X3
     {
-        float[] m_x = new float[6];
+        float[] _mX = new float[6];
 
         public float this[int i]
         {
-            get { return m_x[i]; }
-            set { m_x[i] = value; }
+            get { return _mX[i]; }
+            set { _mX[i] = value; }
         }
 
-        public Sym3x3(float s)
+        public Sym3X3(float s)
         {
-            for (int i = 0; i < 6; i++) { m_x[i] = s; }
+            for (int i = 0; i < 6; i++) { _mX[i] = s; }
         }
 
-        public static Sym3x3 ComputeWeightedCovariance(int n, Vector3[] points, float[] weights)
+        public static Sym3X3 ComputeWeightedCovariance(int n, Vector3[] points, float[] weights)
         {
             // compute the centroid
             float total = 0.0f;
@@ -30,7 +30,7 @@ namespace LibSquishNet
             if (total > float.Epsilon) { centroid /= total; }
 
             // accumulate the covariance matrix
-            Sym3x3 covariance = new Sym3x3(0.0f);
+            Sym3X3 covariance = new Sym3X3(0.0f);
             for (int i = 0; i < n; ++i)
             {
                 Vector3 a = points[i] - centroid;
@@ -48,7 +48,7 @@ namespace LibSquishNet
             return covariance;
         }
 
-        public static Vector3 ComputePrincipleComponent(Sym3x3 matrix)
+        public static Vector3 ComputePrincipleComponent(Sym3X3 matrix)
         {
             Vector4 row0 = new Vector4(matrix[0], matrix[1], matrix[2], 0.0f);
             Vector4 row1 = new Vector4(matrix[1], matrix[3], matrix[4], 0.0f);

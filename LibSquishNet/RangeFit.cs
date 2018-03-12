@@ -5,10 +5,10 @@ namespace LibSquishNet
 {
     public class RangeFit : ColourFit
     {
-        Vector3 m_metric;
-        Vector3 m_start;
-        Vector3 m_end;
-        float m_besterror;
+        Vector3 _mMetric;
+        Vector3 _mStart;
+        Vector3 _mEnd;
+        float _mBesterror;
 
         public RangeFit(ColourSet colours, SquishFlags flags, float? metric)
             : base(colours, flags)
@@ -20,22 +20,22 @@ namespace LibSquishNet
             }
             else
             {
-                m_metric = new Vector3(1.0f);
+                _mMetric = new Vector3(1.0f);
             }
 
             // initialise the best error
-            m_besterror = float.MaxValue;
+            _mBesterror = float.MaxValue;
 
             // cache some values
-            int count = m_colours.Count;
-            Vector3[] values = m_colours.Points;
-            float[] weights = m_colours.Weights;
+            int count = MColours.Count;
+            Vector3[] values = MColours.Points;
+            float[] weights = MColours.Weights;
 
             // get the covariance matrix
-            Sym3x3 covariance = Sym3x3.ComputeWeightedCovariance(count, values, weights);
+            Sym3X3 covariance = Sym3X3.ComputeWeightedCovariance(count, values, weights);
 
             // compute the principle component
-            Vector3 principle = Sym3x3.ComputePrincipleComponent(covariance);
+            Vector3 principle = Sym3X3.ComputePrincipleComponent(covariance);
 
             // get the min and max range as the codebook endpoints
             Vector3 start = new Vector3(0.0f);
@@ -73,21 +73,21 @@ namespace LibSquishNet
             Vector3 grid = new Vector3(31.0f, 63.0f, 31.0f);
             Vector3 gridrcp = new Vector3(1.0f / 31.0f, 1.0f / 63.0f, 1.0f / 31.0f);
             Vector3 half = new Vector3(0.5f);
-            m_start = Helpers.Truncate(grid * start + half) * gridrcp;
-            m_end = Helpers.Truncate(grid * end + half) * gridrcp;
+            _mStart = Helpers.Truncate(grid * start + half) * gridrcp;
+            _mEnd = Helpers.Truncate(grid * end + half) * gridrcp;
         }
 
         public override void Compress3(ref byte[] block, int offset)
         {
             // cache some values
-            int count = m_colours.Count;
-            Vector3[] values = m_colours.Points;
+            int count = MColours.Count;
+            Vector3[] values = MColours.Points;
 
             // create a codebook
             Vector3[] codes = new Vector3[3];
-            codes[0] = m_start;
-            codes[1] = m_end;
-            codes[2] = 0.5f * m_start + 0.5f * m_end;
+            codes[0] = _mStart;
+            codes[1] = _mEnd;
+            codes[2] = 0.5f * _mStart + 0.5f * _mEnd;
 
             // match each point to the closest code
             byte[] closest = new byte[16];
@@ -99,7 +99,7 @@ namespace LibSquishNet
                 int idx = 0;
                 for (int j = 0; j < 3; ++j)
                 {
-                    float d = (m_metric * (values[i] - codes[j])).LengthSquared();
+                    float d = (_mMetric * (values[i] - codes[j])).LengthSquared();
                     if (d < dist)
                     {
                         dist = d;
@@ -115,17 +115,17 @@ namespace LibSquishNet
             }
 
             // save this scheme if it wins
-            if (error < m_besterror)
+            if (error < _mBesterror)
             {
                 // remap the indices
                 byte[] indices = new byte[16];
-                m_colours.RemapIndices(closest, indices);
+                MColours.RemapIndices(closest, indices);
 
                 // save the block
-                ColourBlock.WriteColourBlock3(m_start, m_end, indices, ref block, offset);
+                ColourBlock.WriteColourBlock3(_mStart, _mEnd, indices, ref block, offset);
 
                 // save the error
-                m_besterror = error;
+                _mBesterror = error;
             }
         }
 

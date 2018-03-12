@@ -5,22 +5,22 @@ namespace LibSquishNet
 {
     public class ColourSet
     {
-        int m_count = 0;
-        Vector3[] m_points = new Vector3[16];
-        float[] m_weights = new float[16];
-        int[] m_remap = new int[16];
-        bool m_transparent = false;
+        int _mCount = 0;
+        Vector3[] _mPoints = new Vector3[16];
+        float[] _mWeights = new float[16];
+        int[] _mRemap = new int[16];
+        bool _mTransparent = false;
 
-        public int Count { get { return m_count; } }
-        public bool IsTransparent { get { return m_transparent; } }
-        public Vector3[] Points { get { return m_points; } }
-        public float[] Weights { get { return m_weights; } }
+        public int Count { get { return _mCount; } }
+        public bool IsTransparent { get { return _mTransparent; } }
+        public Vector3[] Points { get { return _mPoints; } }
+        public float[] Weights { get { return _mWeights; } }
 
         public ColourSet(byte[] rgba, int mask, SquishFlags flags)
         {
             // check the compression mode for dxt1
-            bool isDxt1 = ((flags & SquishFlags.kDxt1) != 0);
-            bool weightByAlpha = ((flags & SquishFlags.kWeightColourByAlpha) != 0);
+            bool isDxt1 = ((flags & SquishFlags.KDxt1) != 0);
+            bool weightByAlpha = ((flags & SquishFlags.KWeightColourByAlpha) != 0);
 
             // create the minimal set
             for (int i = 0; i < 16; ++i)
@@ -29,15 +29,15 @@ namespace LibSquishNet
                 int bit = 1 << i;
                 if ((mask & bit) == 0)
                 {
-                    m_remap[i] = -1;
+                    _mRemap[i] = -1;
                     continue;
                 }
 
                 // check for transparent pixels when using dxt1
                 if (isDxt1 && rgba[4 * i + 3] < 128)
                 {
-                    m_remap[i] = -1;
-                    m_transparent = true;
+                    _mRemap[i] = -1;
+                    _mTransparent = true;
                     continue;
                 }
 
@@ -56,12 +56,12 @@ namespace LibSquishNet
                         float w = (float)(rgba[4 * i + 3] + 1) / 256.0f;
 
                         // add the point
-                        m_points[m_count] = new Vector3(x, y, z);
-                        m_weights[m_count] = (weightByAlpha ? w : 1.0f);
-                        m_remap[i] = m_count;
+                        _mPoints[_mCount] = new Vector3(x, y, z);
+                        _mWeights[_mCount] = (weightByAlpha ? w : 1.0f);
+                        _mRemap[i] = _mCount;
 
                         // advance
-                        ++m_count;
+                        ++_mCount;
                         break;
                     }
 
@@ -75,23 +75,23 @@ namespace LibSquishNet
                     if (match)
                     {
                         // get the index of the match
-                        int index = m_remap[j];
+                        int index = _mRemap[j];
 
                         // ensure there is always non-zero weight even for zero alpha
                         float w = (float)(rgba[4 * i + 3] + 1) / 256.0f;
 
                         // map to this point and increase the weight
-                        m_weights[index] += (weightByAlpha ? w : 1.0f);
-                        m_remap[i] = index;
+                        _mWeights[index] += (weightByAlpha ? w : 1.0f);
+                        _mRemap[i] = index;
                         break;
                     }
                 }
             }
 
             // square root the weights
-            for (int i = 0; i < m_count; ++i)
+            for (int i = 0; i < _mCount; ++i)
             {
-                m_weights[i] = (float)Math.Sqrt(m_weights[i]);
+                _mWeights[i] = (float)Math.Sqrt(_mWeights[i]);
             }
         }
 
@@ -99,7 +99,7 @@ namespace LibSquishNet
         {
             for (int i = 0; i < 16; ++i)
             {
-                int j = m_remap[i];
+                int j = _mRemap[i];
                 if (j == -1)
                 {
                     target[i] = 3;
