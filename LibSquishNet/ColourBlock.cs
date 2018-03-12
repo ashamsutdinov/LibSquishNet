@@ -2,7 +2,7 @@
 
 namespace LibSquishNet
 {
-    public class ColourBlock
+    public static class ColourBlock
     {
         public static int FloatToInt(float a, int limit)
         {
@@ -117,7 +117,7 @@ namespace LibSquishNet
         private static int Unpack565(byte[] packed, int offset, byte[] colour, int colouroffset)
         {
             // build the packed value
-            var value = (int)packed[offset + 0] | ((int)packed[offset + 1] << 8);
+            var value = packed[offset + 0] | (packed[offset + 1] << 8);
 
             // get the components in the stored range
             var red = (byte)((value >> 11) & 0x1f);

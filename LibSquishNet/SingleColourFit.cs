@@ -51,14 +51,14 @@ namespace LibSquishNet
                 if (error < _mError)
                 {
                     _mStart = new Vector3(
-                            (float)sources[0].Start / 31.0f,
-                            (float)sources[1].Start / 63.0f,
-                            (float)sources[2].Start / 31.0f
+                            sources[0].Start / 31.0f,
+                            sources[1].Start / 63.0f,
+                            sources[2].Start / 31.0f
                     );
                     _mEnd = new Vector3(
-                            (float)sources[0].End / 31.0f,
-                            (float)sources[1].End / 63.0f,
-                            (float)sources[2].End / 31.0f
+                            sources[0].End / 31.0f,
+                            sources[1].End / 63.0f,
+                            sources[2].End / 31.0f
                     );
                     _mIndex = (byte)(2 * index);
                     _mError = error;

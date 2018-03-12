@@ -48,12 +48,12 @@ namespace LibSquishNet
                     if (j == i)
                     {
                         // normalise coordinates to [0,1]
-                        var x = (float)rgba[4 * i] / 255.0f;
-                        var y = (float)rgba[4 * i + 1] / 255.0f;
-                        var z = (float)rgba[4 * i + 2] / 255.0f;
+                        var x = rgba[4 * i] / 255.0f;
+                        var y = rgba[4 * i + 1] / 255.0f;
+                        var z = rgba[4 * i + 2] / 255.0f;
 
                         // ensure there is always non-zero weight even for zero alpha
-                        var w = (float)(rgba[4 * i + 3] + 1) / 256.0f;
+                        var w = (rgba[4 * i + 3] + 1) / 256.0f;
 
                         // add the point
                         _mPoints[_mCount] = new Vector3(x, y, z);
@@ -78,7 +78,7 @@ namespace LibSquishNet
                         var index = _mRemap[j];
 
                         // ensure there is always non-zero weight even for zero alpha
-                        var w = (float)(rgba[4 * i + 3] + 1) / 256.0f;
+                        var w = (rgba[4 * i + 3] + 1) / 256.0f;
 
                         // map to this point and increase the weight
                         _mWeights[index] += weightByAlpha ? w : 1.0f;

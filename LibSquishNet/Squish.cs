@@ -241,8 +241,8 @@ namespace LibSquishNet
             for (var i = 0; i < 8; ++i)
             {
                 // quantise down to 4 bits
-                var alpha1 = (float)rgba[8 * i + 3] * (15.0f / 255.0f);
-                var alpha2 = (float)rgba[8 * i + 7] * (15.0f / 255.0f);
+                var alpha1 = rgba[8 * i + 3] * (15.0f / 255.0f);
+                var alpha2 = rgba[8 * i + 7] * (15.0f / 255.0f);
                 var quant1 = ColourBlock.FloatToInt(alpha1, 15);
                 var quant2 = ColourBlock.FloatToInt(alpha2, 15);
 
@@ -289,7 +289,7 @@ namespace LibSquishNet
                 for (var j = 0; j < 8; ++j)
                 {
                     // get the squared error from this code
-                    var dist = (int)value - (int)codes[j];
+                    var dist = value - codes[j];
                     dist *= dist;
 
                     // compare with the best so far

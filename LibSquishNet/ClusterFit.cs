@@ -85,11 +85,11 @@ namespace LibSquishNet
                 var same = true;
                 for (var i = 0; i < count; ++i)
                 {
-                    if (_mOrder[16 * iteration + i] != _mOrder[16 * it + i])
-                    {
-                        same = false;
-                        break;
-                    }
+                    if (_mOrder[16 * iteration + i] == _mOrder[16 * it + i])
+                        continue;
+
+                    same = false;
+                    break;
                 }
                 if (same)
                     return false;
@@ -222,8 +222,10 @@ namespace LibSquishNet
                 var unordered = new byte[16];
                 for (var m = 0; m < besti; ++m)
                     unordered[_mOrder[16 * bestiteration + m]] = 0;
+
                 for (var m = besti; m < bestj; ++m)
                     unordered[_mOrder[16 * bestiteration + m]] = 2;
+
                 for (var m = bestj; m < count; ++m)
                     unordered[_mOrder[16 * bestiteration + m]] = 1;
 
@@ -357,27 +359,30 @@ namespace LibSquishNet
             }
 
             // save the block if necessary
-            if (Helpers.CompareAnyLessThan(besterror, _mBesterror))
-            {
-                // remap the indices
-                var unordered = new byte[16];
-                for (var m = 0; m < besti; ++m)
-                    unordered[_mOrder[16 * bestiteration + m]] = 0;
-                for (var m = besti; m < bestj; ++m)
-                    unordered[_mOrder[16 * bestiteration + m]] = 2;
-                for (var m = bestj; m < bestk; ++m)
-                    unordered[_mOrder[16 * bestiteration + m]] = 3;
-                for (var m = bestk; m < count; ++m)
-                    unordered[_mOrder[16 * bestiteration + m]] = 1;
+            if (!Helpers.CompareAnyLessThan(besterror, _mBesterror))
+                return;
 
-                MColours.RemapIndices(unordered, bestindices);
+            // remap the indices
+            var unordered = new byte[16];
+            for (var m = 0; m < besti; ++m)
+                unordered[_mOrder[16 * bestiteration + m]] = 0;
 
-                // save the block
-                ColourBlock.WriteColourBlock4(beststart.ToVector3(), bestend.ToVector3(), bestindices, ref block, offset);
+            for (var m = besti; m < bestj; ++m)
+                unordered[_mOrder[16 * bestiteration + m]] = 2;
 
-                // save the error
-                _mBesterror = besterror;
-            }
+            for (var m = bestj; m < bestk; ++m)
+                unordered[_mOrder[16 * bestiteration + m]] = 3;
+
+            for (var m = bestk; m < count; ++m)
+                unordered[_mOrder[16 * bestiteration + m]] = 1;
+
+            MColours.RemapIndices(unordered, bestindices);
+
+            // save the block
+            ColourBlock.WriteColourBlock4(beststart.ToVector3(), bestend.ToVector3(), bestindices, ref block, offset);
+
+            // save the error
+            _mBesterror = besterror;
         }
     }
 }
