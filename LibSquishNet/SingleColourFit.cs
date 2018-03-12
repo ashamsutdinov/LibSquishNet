@@ -4,12 +4,12 @@ namespace LibSquishNet
 {
     public class SingleColourFit : ColourFit
     {
-        readonly byte[] _mColour = new byte[3];
-        Vector3 _mStart;
-        Vector3 _mEnd;
-        byte _mIndex;
-        int _mError;
-        int _mBesterror;
+        private readonly byte[] _mColour = new byte[3];
+        private Vector3 _mStart;
+        private Vector3 _mEnd;
+        private byte _mIndex;
+        private int _mError;
+        private int _mBesterror;
 
         public SingleColourFit(ColourSet colours, SquishFlags flags)
             : base(colours, flags)

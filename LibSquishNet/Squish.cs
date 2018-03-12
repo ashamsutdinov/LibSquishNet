@@ -29,7 +29,7 @@ namespace LibSquishNet
 
     public static class Squish
     {
-        static SquishFlags FixFlags(SquishFlags flags)
+        private static SquishFlags FixFlags(SquishFlags flags)
         {
             // grab the flag bits
             var method = flags & (SquishFlags.KDxt1 | SquishFlags.KDxt3 | SquishFlags.KDxt5);
@@ -109,7 +109,7 @@ namespace LibSquishNet
             }
         }
 
-        static void Decompress(byte[] rgba, ref byte[] block, int offset, SquishFlags flags)
+        private static void Decompress(byte[] rgba, ref byte[] block, int offset, SquishFlags flags)
         {
             // fix any bad flags
             flags = FixFlags(flags);
@@ -191,7 +191,7 @@ namespace LibSquishNet
             }
         }
 
-        static void CompressMasked(byte[] rgba, int mask, ref byte[] block, int offset, SquishFlags flags, float? metric)
+        private static void CompressMasked(byte[] rgba, int mask, ref byte[] block, int offset, SquishFlags flags, float? metric)
         {
             // fix any bad flags
             flags = FixFlags(flags);
@@ -235,7 +235,7 @@ namespace LibSquishNet
             }
         }
 
-        static void CompressAlphaDxt3(byte[] rgba, int mask, ref byte[] block, int offset)
+        private static void CompressAlphaDxt3(byte[] rgba, int mask, ref byte[] block, int offset)
         {
             // quantise and pack the alpha values pairwise
             for (int i = 0; i < 8; ++i)
@@ -259,7 +259,7 @@ namespace LibSquishNet
             }
         }
 
-        static void FixRange(int min, int max, int steps)
+        private static void FixRange(int min, int max, int steps)
         {
             if (max - min < steps)
                 max = Math.Min(min + steps, 255);
@@ -267,7 +267,7 @@ namespace LibSquishNet
                 min = Math.Max(0, max - steps);
         }
 
-        static int FitCodes(byte[] rgba, int mask, byte[] codes, byte[] indices)
+        private static int FitCodes(byte[] rgba, int mask, byte[] codes, byte[] indices)
         {
             // fit each alpha value to the codebook
             int err = 0;
@@ -309,7 +309,7 @@ namespace LibSquishNet
             return err;
         }
 
-        static void WriteAlphaBlock(int alpha0, int alpha1, byte[] indices, ref byte[] block, int offset)
+        private static void WriteAlphaBlock(int alpha0, int alpha1, byte[] indices, ref byte[] block, int offset)
         {
             // write the first two bytes
             block[offset + 0] = (byte)alpha0;
@@ -339,7 +339,7 @@ namespace LibSquishNet
             }
         }
 
-        static void WriteAlphaBlock5(int alpha0, int alpha1, byte[] indices, ref byte[] block, int offset)
+        private static void WriteAlphaBlock5(int alpha0, int alpha1, byte[] indices, ref byte[] block, int offset)
         {
             // check the relative values of the endpoints
             if (alpha0 > alpha1)
@@ -369,7 +369,7 @@ namespace LibSquishNet
             }
         }
 
-        static void WriteAlphaBlock7(int alpha0, int alpha1, byte[] indices, ref byte[] block, int offset)
+        private static void WriteAlphaBlock7(int alpha0, int alpha1, byte[] indices, ref byte[] block, int offset)
         {
             // check the relative values of the endpoints
             if (alpha0 < alpha1)
@@ -397,7 +397,7 @@ namespace LibSquishNet
             }
         }
 
-        static void CompressAlphaDxt5( byte[] rgba, int mask, ref byte[] block, int offset )
+        private static void CompressAlphaDxt5( byte[] rgba, int mask, ref byte[] block, int offset )
         {
             // get the range for 5-alpha and 7-alpha interpolation
             int min5 = 255;
@@ -462,7 +462,7 @@ namespace LibSquishNet
                     WriteAlphaBlock7( min7, max7, indices7, ref block, offset );
         }
 
-        static void DecompressAlphaDxt5(byte[] rgba, ref byte[] block, int offset)
+        private static void DecompressAlphaDxt5(byte[] rgba, ref byte[] block, int offset)
         {
             // get the two alpha values
             int alpha0 = block[offset + 0];

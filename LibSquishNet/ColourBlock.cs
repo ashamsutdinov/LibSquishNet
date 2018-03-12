@@ -19,7 +19,7 @@ namespace LibSquishNet
             return i;
         }
 
-        static int FloatTo565(Vector3 colour)
+        private static int FloatTo565(Vector3 colour)
         {
             // get the components in the correct range
             int r = FloatToInt(31.0f * colour.X, 31);
@@ -30,7 +30,7 @@ namespace LibSquishNet
             return (r << 11) | (g << 5) | b;
         }
 
-        static void WriteColourBlock(int a, int b, byte[] indices, ref byte[] block, int offset)
+        private static void WriteColourBlock(int a, int b, byte[] indices, ref byte[] block, int offset)
         {
             // write the endpoints
             block[offset + 0] = (byte)(a & 0xff);
@@ -114,7 +114,7 @@ namespace LibSquishNet
             WriteColourBlock(a, b, remapped, ref block, offset);
         }
 
-        static int Unpack565(byte[] packed, int offset, byte[] colour, int colouroffset)
+        private static int Unpack565(byte[] packed, int offset, byte[] colour, int colouroffset)
         {
             // build the packed value
             int value = (int)packed[offset + 0] | ((int)packed[offset + 1] << 8);

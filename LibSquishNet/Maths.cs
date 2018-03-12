@@ -4,7 +4,7 @@ namespace LibSquishNet
 {
     public class Sym3X3
     {
-        readonly float[] _mX = new float[6];
+        private readonly float[] _mX = new float[6];
 
         public float this[int i]
         {

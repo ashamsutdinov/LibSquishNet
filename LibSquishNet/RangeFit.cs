@@ -5,10 +5,10 @@ namespace LibSquishNet
 {
     public class RangeFit : ColourFit
     {
-        readonly Vector3 _mMetric;
-        readonly Vector3 _mStart;
-        readonly Vector3 _mEnd;
-        float _mBesterror;
+        private readonly Vector3 _mMetric;
+        private readonly Vector3 _mStart;
+        private readonly Vector3 _mEnd;
+        private float _mBesterror;
 
         public RangeFit(ColourSet colours, SquishFlags flags, float? metric)
             : base(colours, flags)
