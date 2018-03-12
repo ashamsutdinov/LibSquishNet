@@ -103,7 +103,7 @@ namespace LibSquishNet
                 throw new NotImplementedException("Squish.DecompressAlphaDxt3");
                 //DecompressAlphaDxt3(rgba, alphaBlock);
             }
-            else if ((flags & SquishFlags.KDxt5) != 0)
+            if ((flags & SquishFlags.KDxt5) != 0)
             {
                 DecompressAlphaDxt5(rgba, ref block, alphaBlock);
             }
