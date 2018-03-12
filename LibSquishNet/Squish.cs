@@ -50,8 +50,8 @@ namespace LibSquishNet
             flags = FixFlags(flags);
 
             // compute the storage requirements
-            var blockcount = ((width + 3) / 4) * ((height + 3) / 4);
-            var blocksize = ((flags & SquishFlags.KDxt1) != 0) ? 8 : 16;
+            var blockcount = (width + 3) / 4 * ((height + 3) / 4);
+            var blocksize = (flags & SquishFlags.KDxt1) != 0 ? 8 : 16;
             return blockcount * blocksize;
         }
 
@@ -62,7 +62,7 @@ namespace LibSquishNet
 
             // initialise the block input
             var sourceBlock = 0;
-            var bytesPerBlock = ((flags & SquishFlags.KDxt1) != 0) ? 8 : 16;
+            var bytesPerBlock = (flags & SquishFlags.KDxt1) != 0 ? 8 : 16;
 
             // loop over blocks
             for (var y = 0; y < height; y += 4)
@@ -141,7 +141,7 @@ namespace LibSquishNet
 
             // initialise the block output
             var targetBlock = 0;
-            var bytesPerBlock = (flags.HasFlag(SquishFlags.KDxt1) ? 8 : 16);
+            var bytesPerBlock = flags.HasFlag(SquishFlags.KDxt1) ? 8 : 16;
 
             // loop over blocks
             for (var y = 0; y < height; y += 4)
@@ -172,7 +172,7 @@ namespace LibSquishNet
                                 }
 
                                 // enable this pixel
-                                mask |= (1 << (4 * py + px));
+                                mask |= 1 << (4 * py + px);
                             }
                             else
                             {
@@ -325,7 +325,7 @@ namespace LibSquishNet
                 for (var j = 0; j < 8; ++j)
                 {
                     int index = indices[src];
-                    value |= (index << 3 * j);
+                    value |= index << 3 * j;
                     src++;
                 }
 
@@ -502,7 +502,7 @@ namespace LibSquishNet
                 for (var j = 0; j < 3; ++j)
                 {
                     int b = block[src++];
-                    value |= (b << 8 * j);
+                    value |= b << 8 * j;
                 }
 
                 // unpack 8 3-bit values from it

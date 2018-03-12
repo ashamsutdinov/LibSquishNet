@@ -19,8 +19,8 @@ namespace LibSquishNet
         public ColourSet(byte[] rgba, int mask, SquishFlags flags)
         {
             // check the compression mode for dxt1
-            var isDxt1 = ((flags & SquishFlags.KDxt1) != 0);
-            var weightByAlpha = ((flags & SquishFlags.KWeightColourByAlpha) != 0);
+            var isDxt1 = (flags & SquishFlags.KDxt1) != 0;
+            var weightByAlpha = (flags & SquishFlags.KWeightColourByAlpha) != 0;
 
             // create the minimal set
             for (var i = 0; i < 16; ++i)
@@ -57,7 +57,7 @@ namespace LibSquishNet
 
                         // add the point
                         _mPoints[_mCount] = new Vector3(x, y, z);
-                        _mWeights[_mCount] = (weightByAlpha ? w : 1.0f);
+                        _mWeights[_mCount] = weightByAlpha ? w : 1.0f;
                         _mRemap[i] = _mCount;
 
                         // advance
@@ -81,7 +81,7 @@ namespace LibSquishNet
                         var w = (float)(rgba[4 * i + 3] + 1) / 256.0f;
 
                         // map to this point and increase the weight
-                        _mWeights[index] += (weightByAlpha ? w : 1.0f);
+                        _mWeights[index] += weightByAlpha ? w : 1.0f;
                         _mRemap[i] = index;
                         break;
                     }

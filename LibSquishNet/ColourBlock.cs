@@ -41,7 +41,7 @@ namespace LibSquishNet
             // write the indices
             for (var i = 0; i < 4; ++i)
             {
-                block[offset + 4 + i] = (byte)(indices[(4 * i) + 0] | (indices[(4 * i) + 1] << 2) | (indices[(4 * i) + 2] << 4) | (indices[(4 * i) + 3] << 6));
+                block[offset + 4 + i] = (byte)(indices[4 * i + 0] | (indices[4 * i + 1] << 2) | (indices[4 * i + 2] << 4) | (indices[4 * i + 3] << 6));
             }
         }
 

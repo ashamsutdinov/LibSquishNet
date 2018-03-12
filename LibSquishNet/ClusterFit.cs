@@ -23,7 +23,7 @@ namespace LibSquishNet
             : base(colours, flags)
         {
             // set the iteration count
-            _mIterationCount = ((MFlags & SquishFlags.KColourIterativeClusterFit) != 0 ? 8 : 1);
+            _mIterationCount = (MFlags & SquishFlags.KColourIterativeClusterFit) != 0 ? 8 : 1;
 
             // initialise the metric (old perceptual = 0.2126f, 0.7152f, 0.0722f)
             if (metric != null)
@@ -49,7 +49,7 @@ namespace LibSquishNet
             _mPrinciple = Sym3X3.ComputePrincipleComponent(covariance);
         }
 
-        public bool ConstructOrdering(Vector3 axis, int iteration)
+        private bool ConstructOrdering(Vector3 axis, int iteration)
         {
             // cache some values
             var count = MColours.Count;
@@ -61,7 +61,7 @@ namespace LibSquishNet
             for (var i = 0; i < count; ++i)
             {
                 dps[i] = Vector3.Dot(values[i], axis);
-                _mOrder[(16 * iteration) + i] = (byte)i;
+                _mOrder[16 * iteration + i] = (byte)i;
             }
 
             // stable sort using them
@@ -73,9 +73,9 @@ namespace LibSquishNet
                     dps[j] = dps[j - 1];
                     dps[j - 1] = tf;
 
-                    var tb = _mOrder[(16 * iteration) + j];
-                    _mOrder[(16 * iteration) + j] = _mOrder[(16 * iteration) + j - 1];
-                    _mOrder[(16 * iteration) + j - 1] = tb;
+                    var tb = _mOrder[16 * iteration + j];
+                    _mOrder[16 * iteration + j] = _mOrder[16 * iteration + j - 1];
+                    _mOrder[16 * iteration + j - 1] = tb;
                 }
             }
 
@@ -85,7 +85,7 @@ namespace LibSquishNet
                 var same = true;
                 for (var i = 0; i < count; ++i)
                 {
-                    if (_mOrder[(16 * iteration) + i] != _mOrder[(16 * it) + i])
+                    if (_mOrder[16 * iteration + i] != _mOrder[16 * it + i])
                     {
                         same = false;
                         break;
@@ -101,7 +101,7 @@ namespace LibSquishNet
             _mXsumWsum = new Vector4(0.0f);
             for (var i = 0; i < count; ++i)
             {
-                int j = _mOrder[(16 * iteration) + i];
+                int j = _mOrder[16 * iteration + i];
                 var p = new Vector4(unweighted[j].X, unweighted[j].Y, unweighted[j].Z, 1.0f);
                 var w = new Vector4(weights[j]);
                 var x = p * w;
@@ -135,16 +135,16 @@ namespace LibSquishNet
             int besti = 0, bestj = 0;
 
             // loop over iterations (we avoid the case that all points in first or last cluster)
-            for (var iterationIndex = 0; ; )
+            for (var iterationIndex = 0; ;)
             {
                 // first cluster [0,i) is at the start
                 var part0 = new Vector4(0.0f);
                 for (var i = 0; i < count; ++i)
                 {
                     // second cluster [i,j) is half along
-                    var part1 = (i == 0) ? _mPointsWeights[0] : new Vector4(0.0f);
-                    var jmin = (i == 0) ? 1 : i;
-                    for (var j = jmin; ; )
+                    var part1 = i == 0 ? _mPointsWeights[0] : new Vector4(0.0f);
+                    var jmin = i == 0 ? 1 : i;
+                    for (var j = jmin; ;)
                     {
                         // last cluster [j,count) is at the end
                         var part2 = _mXsumWsum - part1 - part0;
@@ -173,7 +173,7 @@ namespace LibSquishNet
                         var e1 = Helpers.MultiplyAdd(a * a, alpha2Sum, b * b * beta2Sum);
                         var e2 = Helpers.NegativeMultiplySubtract(a, alphaxSum, a * b * alphabetaSum);
                         var e3 = Helpers.NegativeMultiplySubtract(b, betaxSum, e2);
-                        var e4 = Helpers.MultiplyAdd( two, e3, e1);
+                        var e4 = Helpers.MultiplyAdd(two, e3, e1);
 
                         // apply the metric to the error term
                         var e5 = e4 * _mMetric;
@@ -221,11 +221,11 @@ namespace LibSquishNet
             {
                 var unordered = new byte[16];
                 for (var m = 0; m < besti; ++m)
-                    unordered[_mOrder[(16 * bestiteration) + m]] = 0;
+                    unordered[_mOrder[16 * bestiteration + m]] = 0;
                 for (var m = besti; m < bestj; ++m)
-                    unordered[_mOrder[(16 * bestiteration) + m]] = 2;
+                    unordered[_mOrder[16 * bestiteration + m]] = 2;
                 for (var m = bestj; m < count; ++m)
-                    unordered[_mOrder[(16 * bestiteration) + m]] = 1;
+                    unordered[_mOrder[16 * bestiteration + m]] = 1;
 
                 MColours.RemapIndices(unordered, bestindices);
 
@@ -263,7 +263,7 @@ namespace LibSquishNet
             int besti = 0, bestj = 0, bestk = 0;
 
             // loop over iterations (we avoid the case that all points in first or last cluster)
-            for (var iterationIndex = 0; ; )
+            for (var iterationIndex = 0; ;)
             {
                 // first cluster [0,i) is at the start
                 var part0 = new Vector4(0.0f);
@@ -271,12 +271,12 @@ namespace LibSquishNet
                 {
                     // second cluster [i,j) is one third along
                     var part1 = new Vector4(0.0f);
-                    for (var j = i; ; )
+                    for (var j = i; ;)
                     {
                         // third cluster [j,k) is two thirds along
-                        var part2 = (j == 0) ? _mPointsWeights[0] : new Vector4(0.0f);
-                        var kmin = (j == 0) ? 1 : j;
-                        for (var k = kmin; ; )
+                        var part2 = j == 0 ? _mPointsWeights[0] : new Vector4(0.0f);
+                        var kmin = j == 0 ? 1 : j;
+                        for (var k = kmin; ;)
                         {
                             // last cluster [k,count) is at the end
                             var part3 = _mXsumWsum - part2 - part1 - part0;
@@ -362,13 +362,13 @@ namespace LibSquishNet
                 // remap the indices
                 var unordered = new byte[16];
                 for (var m = 0; m < besti; ++m)
-                    unordered[_mOrder[(16 * bestiteration) + m]] = 0;
+                    unordered[_mOrder[16 * bestiteration + m]] = 0;
                 for (var m = besti; m < bestj; ++m)
-                    unordered[_mOrder[(16 * bestiteration) + m]] = 2;
+                    unordered[_mOrder[16 * bestiteration + m]] = 2;
                 for (var m = bestj; m < bestk; ++m)
-                    unordered[_mOrder[(16 * bestiteration) + m]] = 3;
+                    unordered[_mOrder[16 * bestiteration + m]] = 3;
                 for (var m = bestk; m < count; ++m)
-                    unordered[_mOrder[(16 * bestiteration) + m]] = 1;
+                    unordered[_mOrder[16 * bestiteration + m]] = 1;
 
                 MColours.RemapIndices(unordered, bestindices);
 
