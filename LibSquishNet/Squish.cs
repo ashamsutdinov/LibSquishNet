@@ -40,12 +40,15 @@ namespace LibSquishNet
             var bytesPerBlock = (flags & SquishFlags.KDxt1) != 0 ? 8 : 16;
 
             // loop over blocks
+            // decompress the block
+            var targetRgba = new byte[4 * 16];
+            var zeroArr = new byte[4 * 16];
+
             for (var y = 0; y < height; y += 4)
             {
                 for (var x = 0; x < width; x += 4)
                 {
-                    // decompress the block
-                    var targetRgba = new byte[4 * 16];
+                    Array.Copy(zeroArr, targetRgba, 4 * 16);
                     Decompress(targetRgba, ref blocks, sourceBlock, flags);
 
                     // write the decompressed pixels to the correct image locations
@@ -372,69 +375,69 @@ namespace LibSquishNet
             }
         }
 
-        private static void CompressAlphaDxt5( byte[] rgba, int mask, ref byte[] block, int offset )
+        private static void CompressAlphaDxt5(byte[] rgba, int mask, ref byte[] block, int offset)
         {
             // get the range for 5-alpha and 7-alpha interpolation
             var min5 = 255;
             var max5 = 0;
             var min7 = 255;
             var max7 = 0;
-            for( var i = 0; i < 16; ++i )
+            for (var i = 0; i < 16; ++i)
             {
-                    // check this pixel is valid
-                    var bit = 1 << i;
-                    if( ( mask & bit ) == 0 )
-                            continue;
+                // check this pixel is valid
+                var bit = 1 << i;
+                if ((mask & bit) == 0)
+                    continue;
 
-                    // incorporate into the min/max
-                    int value = rgba[4*i + 3];
-                    if( value < min7 )
-                            min7 = value;
-                    if( value > max7 )
-                            max7 = value;
-                    if( value != 0 && value < min5 )
-                            min5 = value;
-                    if( value != 255 && value > max5 )
-                            max5 = value;
+                // incorporate into the min/max
+                int value = rgba[4 * i + 3];
+                if (value < min7)
+                    min7 = value;
+                if (value > max7)
+                    max7 = value;
+                if (value != 0 && value < min5)
+                    min5 = value;
+                if (value != 255 && value > max5)
+                    max5 = value;
             }
-        
+
             // handle the case that no valid range was found
-            if( min5 > max5 )
-                    min5 = max5;
-            if( min7 > max7 )
-                    min7 = max7;
-                
+            if (min5 > max5)
+                min5 = max5;
+            if (min7 > max7)
+                min7 = max7;
+
             // fix the range to be the minimum in each case
-            FixRange( min5, max5, 5 );
-            FixRange( min7, max7, 7 );
-        
+            FixRange(min5, max5, 5);
+            FixRange(min7, max7, 7);
+
             // set up the 5-alpha code book
             var codes5 = new byte[8];
-            codes5[0] = ( byte )min5;
-            codes5[1] = ( byte )max5;
-            for( var i = 1; i < 5; ++i )
-                    codes5[1 + i] = ( byte )( ( ( 5 - i )*min5 + i*max5 )/5 );
+            codes5[0] = (byte)min5;
+            codes5[1] = (byte)max5;
+            for (var i = 1; i < 5; ++i)
+                codes5[1 + i] = (byte)(((5 - i) * min5 + i * max5) / 5);
             codes5[6] = 0;
             codes5[7] = 255;
-        
+
             // set up the 7-alpha code book
             var codes7 = new byte[8];
-            codes7[0] = ( byte )min7;
-            codes7[1] = ( byte )max7;
-            for( var i = 1; i < 7; ++i )
-                    codes7[1 + i] = ( byte )( ( ( 7 - i )*min7 + i*max7 )/7 );
-                
+            codes7[0] = (byte)min7;
+            codes7[1] = (byte)max7;
+            for (var i = 1; i < 7; ++i)
+                codes7[1 + i] = (byte)(((7 - i) * min7 + i * max7) / 7);
+
             // fit the data to both code books
             var indices5 = new byte[16];
             var indices7 = new byte[16];
-            var err5 = FitCodes( rgba, mask, codes5, indices5 );
-            var err7 = FitCodes( rgba, mask, codes7, indices7 );
-        
+            var err5 = FitCodes(rgba, mask, codes5, indices5);
+            var err7 = FitCodes(rgba, mask, codes7, indices7);
+
             // save the block with least error
-            if( err5 <= err7 )
-                    WriteAlphaBlock5( min5, max5, indices5, ref block, offset );
+            if (err5 <= err7)
+                WriteAlphaBlock5(min5, max5, indices5, ref block, offset);
             else
-                    WriteAlphaBlock7( min7, max7, indices7, ref block, offset );
+                WriteAlphaBlock7(min7, max7, indices7, ref block, offset);
         }
 
         private static void DecompressAlphaDxt5(byte[] rgba, ref byte[] block, int offset)
