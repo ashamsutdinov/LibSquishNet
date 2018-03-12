@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Squish
+namespace LibSquishNet
 {
     [Flags]
     public enum SquishFlags

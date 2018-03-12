@@ -1,7 +1,6 @@
-﻿using System;
-using System.Numerics;
+﻿using System.Numerics;
 
-namespace Squish
+namespace LibSquishNet
 {
     public class SingleColourFit : ColourFit
     {

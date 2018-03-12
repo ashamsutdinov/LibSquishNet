@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Numerics;
 
-namespace Squish
+namespace LibSquishNet
 {
     public class RangeFit : ColourFit
     {

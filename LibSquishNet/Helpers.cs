@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Numerics;
 
-namespace Squish
+namespace LibSquishNet
 {
     public static class Helpers
     {

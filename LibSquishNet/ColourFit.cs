@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Squish
+﻿namespace LibSquishNet
 {
     public class ColourFit
     {
